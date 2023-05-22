@@ -69,9 +69,9 @@ def _async_devices_as_dict(
 ) -> dict:
     """Represent a LGE devices as a dictionary."""
 
-    lge_devices = hass.data[DOMAIN].get(LGE_DEVICES, {})
+    lge_devices_custom = hass.data[DOMAIN].get(LGE_DEVICES, {})
     devs_data = {}
-    for dev_type, devices in lge_devices.items():
+    for dev_type, devices in lge_devices_custom.items():
         lge_devs = {}
         for lge_device in devices:
             device: ThinQDevice = lge_device.device
