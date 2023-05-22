@@ -391,7 +391,7 @@ class LGEDevice:
     @property
     def unique_id(self) -> str:
         """Device unique ID"""
-        return self._unique_id
+        return f"{self._unique_id}_C"
 
     @property
     def state(self):
