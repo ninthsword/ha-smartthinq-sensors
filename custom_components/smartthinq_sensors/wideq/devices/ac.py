@@ -106,8 +106,8 @@ CMD_STATE_MODE_AWHP_SILENT = [CTRL_BASIC, "Set", STATE_MODE_AWHP_SILENT]
 
 CMD_ENABLE_EVENT_V2 = ["allEventEnable", "Set", "airState.mon.timeout"]
 
-# STATE_AUTODRY_MODE_V2 = "airState.miscFuncState.autoDry"
-# STATE_AIRCLEAN_MODE_V2 = "airState.wMode.airClean"
+STATE_AUTODRY_MODE_V2 = "airState.miscFuncState.autoDry" ###
+STATE_AIRCLEAN_MODE_V2 = "airState.wMode.airClean" ###
 # STATE_FILTER_MAX_TIME_V2 = "airState.filterMngStates.maxTime"
 # STATE_FILTER_REMAIN_TIME_V2 = "airState.filterMngStates.useTime"
 
