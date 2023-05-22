@@ -342,16 +342,16 @@ class LGEDevice:
 
         self._device = device
         self._hass = hass
-        self._name = f"{device.name}_C"
-        self._device_id = f"{device.unique_id}_C"
+        self._name = device.name
+        self._device_id = device.unique_id
         self._type = device.device_info.type
         self._mac = None
         if mac := device.device_info.macaddress:
             self._mac = dr.format_mac(mac)
         self._firmware = device.device_info.firmware
 
-        self._model = f"{device.device_info.model_name}_C"
-        self._unique_id = f"{self._type.name}:{self._device_id}_C"
+        self._model = f"{device.device_info.model_name}"
+        self._unique_id = f"{self._type.name}:{self._device_id}"
 
         self._state = None
         self._coordinator: DataUpdateCoordinator | None = None
@@ -409,8 +409,8 @@ class LGEDevice:
         data = DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._name,
-            manufacturer="LG_C",
-            model=f"{self._model}_({self._type.name})",
+            manufacturer="LG",
+            model=f"{self._model} ({self._type.name})",
         )
         if self._firmware:
             data["sw_version"] = self._firmware
