@@ -48,7 +48,7 @@ def get_entity_name(device, ent_key, ent_name) -> str:
     """Get the name for the entity"""
     name_slug = device.name
     if ent_key == DEFAULT_SENSOR:
-        return name_slug + "_C"
+        return name_slug
 
     name = ent_name or ent_key
     if not ent_name:
@@ -56,7 +56,7 @@ def get_entity_name(device, ent_key, ent_name) -> str:
         if feat_name and feat_name != ent_key:
             name = feat_name.replace("_", " ").capitalize()
 
-    return f"{name_slug}_C {name}"
+    return f"{name_slug} {name}"
 
 
 class LGEBaseDevice:
