@@ -89,7 +89,7 @@ class LGEBaseDevice:
     @property
     def device(self):
         """The API device"""
-        return f"{self._api.device}_C"
+        return self._api.device
 
     @property
     def is_power_on(self):
