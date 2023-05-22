@@ -343,7 +343,7 @@ class LGEDevice:
         self._device = device
         self._hass = hass
         self._name = device.name
-        self._device_id = device.unique_id
+        self._device_id = f"{device.unique_id}_C"
         self._type = device.device_info.type
         self._mac = None
         if mac := device.device_info.macaddress:
