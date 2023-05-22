@@ -371,12 +371,12 @@ class LGEDevice:
     @property
     def device(self):
         """The device instance"""
-        return f"{self._device}_C"
+        return self._device
 
     @property
     def device_id(self):
         """The device unique identifier"""
-        return f"{self._device_id}_C"
+        return self._device_id
 
     @property
     def name(self) -> str:
@@ -391,7 +391,7 @@ class LGEDevice:
     @property
     def unique_id(self) -> str:
         """Device unique ID"""
-        return f"{self._unique_id}_C"
+        return self._unique_id
 
     @property
     def state(self):
