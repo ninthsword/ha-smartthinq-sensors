@@ -285,7 +285,7 @@ class SmartThinQFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
             return self.async_abort(reason="reconfigured")
 
-        return self.async_create_entry(title="LGE Devices", data=data)
+        return self.async_create_entry(title="LGE Devices Custom", data=data)
 
     @callback
     def _prepare_form_schema(self, step_id="user") -> vol.Schema:
