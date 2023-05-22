@@ -340,9 +340,9 @@ class LGEDevice:
     def __init__(self, device: ThinQDevice, hass: HomeAssistant):
         """initialize a LGE Device."""
 
-        self._device = device
+        self._device = f"{device}_C"
         self._hass = hass
-        self._name = device.name
+        self._name = f"{device.name}_C"
         self._device_id = f"{device.unique_id}_C"
         self._type = device.device_info.type
         self._mac = None
@@ -350,8 +350,8 @@ class LGEDevice:
             self._mac = dr.format_mac(mac)
         self._firmware = device.device_info.firmware
 
-        self._model = f"{device.device_info.model_name}"
-        self._unique_id = f"{self._type.name}:{self._device_id}"
+        self._model = f"{device.device_info.model_name}_C"
+        self._unique_id = f"{self._type.name}:{self._device_id}_C"
 
         self._state = None
         self._coordinator: DataUpdateCoordinator | None = None
