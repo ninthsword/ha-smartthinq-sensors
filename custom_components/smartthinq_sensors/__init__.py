@@ -407,10 +407,10 @@ class LGEDevice:
     def device_info(self) -> DeviceInfo:
         """Return device info for the device."""
         data = DeviceInfo(
-            identifiers=f"{(DOMAIN, self._device_id)}_C",
-            name=f"{self._name}_C",
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._name,
             manufacturer="LG_C",
-            model=f"{self._model} ({self._type.name})",
+            model=f"{self._model}_({self._type.name})",
         )
         if self._firmware:
             data["sw_version"] = self._firmware
