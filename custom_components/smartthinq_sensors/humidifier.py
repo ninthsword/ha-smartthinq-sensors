@@ -97,7 +97,7 @@ class LGEDeHumidifier(LGEBaseHumidifier):
         super().__init__(api)
         self._device: DeHumidifierDevice = api.device
         self._attr_name = api.name
-        self._attr_unique_id = f"{api.unique_id}-DEHUM"
+        self._attr_unique_id = f"{api.unique_id}-DEHUM_C"
         self._attr_device_class = HumidifierDeviceClass.DEHUMIDIFIER
 
         self._use_fan_modes = False
