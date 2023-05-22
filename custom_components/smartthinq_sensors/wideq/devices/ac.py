@@ -111,12 +111,12 @@ CMD_ENABLE_EVENT_V2 = ["allEventEnable", "Set", "airState.mon.timeout"]
 # STATE_FILTER_MAX_TIME_V2 = "airState.filterMngStates.maxTime"
 # STATE_FILTER_REMAIN_TIME_V2 = "airState.filterMngStates.useTime"
 
-DEFAULT_MIN_TEMP = 16
+DEFAULT_MIN_TEMP = 18 ###16
 DEFAULT_MAX_TEMP = 30
 AWHP_MIN_TEMP = 5
 AWHP_MAX_TEMP = 80
 
-TEMP_STEP_WHOLE = 1.0
+TEMP_STEP_WHOLE = 0.5 ###1.0
 TEMP_STEP_HALF = 0.5
 
 ADD_FEAT_POLL_INTERVAL = 300  # 5 minutes
@@ -171,22 +171,22 @@ class ACMode(Enum):
 class ACFanSpeed(Enum):
     """The fan speed for an AC/HVAC device."""
 
-    SLOW = "@AC_MAIN_WIND_STRENGTH_SLOW_W"
-    SLOW_LOW = "@AC_MAIN_WIND_STRENGTH_SLOW_LOW_W"
-    LOW = "@AC_MAIN_WIND_STRENGTH_LOW_W"
-    LOW_MID = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
-    MID = "@AC_MAIN_WIND_STRENGTH_MID_W"
-    MID_HIGH = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
-    HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
-    POWER = "@AC_MAIN_WIND_STRENGTH_POWER_W"
-    AUTO = "@AC_MAIN_WIND_STRENGTH_AUTO_W"
-    NATURE = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
-    R_LOW = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-    R_MID = "@AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-    R_HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
-    L_LOW = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W"
-    L_MID = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W"
-    L_HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W"
+    #SLOW = "@AC_MAIN_WIND_STRENGTH_SLOW_W"
+    #SLOW_LOW = "@AC_MAIN_WIND_STRENGTH_SLOW_LOW_W"
+    약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W" ###LOW
+    #LOW_MID = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
+    중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
+    #MID_HIGH = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
+    강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
+    #POWER = "@AC_MAIN_WIND_STRENGTH_POWER_W"
+    #AUTO = "@AC_MAIN_WIND_STRENGTH_AUTO_W"
+    자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
+    #R_LOW = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+    #R_MID = "@AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+    #R_HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    #L_LOW = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W"
+    #L_MID = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W"
+    #L_HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W"
 
 
 class ACVStepMode(Enum):
@@ -199,14 +199,14 @@ class ACVStepMode(Enum):
     All is 100.
     """
 
-    Off = "@OFF"
-    Top = "@1"
-    MiddleTop1 = "@2"
-    MiddleTop2 = "@3"
-    MiddleBottom2 = "@4"
-    MiddleBottom1 = "@5"
-    Bottom = "@6"
-    Swing = "@100"
+    기본 = "@OFF" ###
+    위치1 = "@1" ###
+    위치2 = "@2" ###
+    위치3 = "@3" ###
+    위치4 = "@4" ###
+    위치5 = "@5" ###
+    위치6 = "@6" ###
+    회전 = "@100" ###
 
 
 class ACHStepMode(Enum):
@@ -219,15 +219,15 @@ class ACHStepMode(Enum):
     All is 100.
     """
 
-    Off = "@OFF"
-    Left = "@1"
-    MiddleLeft = "@2"
-    Center = "@3"
-    MiddleRight = "@4"
-    Right = "@5"
-    LeftHalf = "@13"
-    RightHalf = "@35"
-    Swing = "@100"
+    기본 = "@OFF" ###
+    위치1 = "@1" ###
+    위치2 = "@2" ###
+    위치3 = "@3" ###
+    위치4 = "@4" ###
+    위치5 = "@5" ###
+    좌반 = "@13" ###
+    우반 = "@35" ###
+    회전 = "@100" ###
 
 
 class JetMode(Enum):
