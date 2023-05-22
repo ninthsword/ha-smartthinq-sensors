@@ -340,7 +340,7 @@ class LGEDevice:
     def __init__(self, device: ThinQDevice, hass: HomeAssistant):
         """initialize a LGE Device."""
 
-        self._device = f"{device}_C"
+        self._device = device
         self._hass = hass
         self._name = f"{device.name}_C"
         self._device_id = f"{device.unique_id}_C"
