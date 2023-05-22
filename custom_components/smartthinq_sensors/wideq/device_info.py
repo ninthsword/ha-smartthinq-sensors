@@ -130,7 +130,7 @@ class DeviceInfo:
     @property
     def name(self) -> str:
         """Return the device name."""
-        return self._data.get("alias", self.device_id)
+        return f"{self._data.get("alias", self.device_id)}_C"
 
     @property
     def model_info_url(self) -> str:
