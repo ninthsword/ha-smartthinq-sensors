@@ -3,7 +3,7 @@ remote_start:
   description: Send to ThinQ device the remote start command.
   target:
     entity:
-      integration: smartthinq_sensors
+      integration: smartthinq_sensors_custom
       domain: sensor
 
 wake_up:
@@ -11,7 +11,7 @@ wake_up:
   description: Send to ThinQ device the wakeup command.
   target:
     entity:
-      integration: smartthinq_sensors
+      integration: smartthinq_sensors_custom
       domain: sensor
 
 set_fan_mode:
@@ -19,7 +19,7 @@ set_fan_mode:
   description: Set fan operation for dehumidifier device.
   target:
     entity:
-      integration: smartthinq_sensors
+      integration: smartthinq_sensors_custom
       domain: humidifier
   fields:
     fan_mode:
