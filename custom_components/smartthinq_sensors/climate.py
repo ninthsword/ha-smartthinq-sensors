@@ -46,8 +46,8 @@ PRESET_MODE_LOOKUP: dict[str, dict[str, HVACMode]] = {
     ACMode.ENERGY_SAVER.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
 }
 
-ATTR_SWING_HORIZONTAL = "swing_mode_horizontal"
-ATTR_SWING_VERTICAL = "swing_mode_vertical"
+ATTR_SWING_HORIZONTAL = "좌우회전" ###수정
+ATTR_SWING_VERTICAL = "상하회전" ###수정
 SWING_PREFIX = ["상하|", "좌우|"] ###수정
 
 _LOGGER = logging.getLogger(__name__)
