@@ -389,7 +389,7 @@ class Device:
     @property
     def name(self) -> str:
         """Return name for this device."""
-        return self._attr_name
+        return f"{self._attr_name}_C"
 
     @property
     def model_info(self) -> ModelInfo | None:
