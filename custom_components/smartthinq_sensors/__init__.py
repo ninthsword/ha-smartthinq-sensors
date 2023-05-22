@@ -283,7 +283,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("ThinQ client connected")
 
     try:
-        lge_devices, unsupported_devices, discovered_devices = await lge_devices_setup(
+        lge_devices_custom, unsupported_devices, discovered_devices = await lge_devices_setup(
             hass, client
         )
     except Exception as exc:
@@ -310,7 +310,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data[DOMAIN] = {
         CLIENT: client,
-        LGE_DEVICES: lge_devices,
+        LGE_DEVICES: lge_devices_custom,
         UNSUPPORTED_DEVICES: unsupported_devices,
         DISCOVERED_DEVICES: discovered_devices,
     }
