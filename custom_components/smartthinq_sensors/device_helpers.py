@@ -34,11 +34,11 @@ WASH_DEVICE_TYPES = [
 ]
 
 
-def get_multiple_devices_types(lge_devices: dict, dev_types: list) -> list:
+def get_multiple_devices_types(lge_devices_custom: dict, dev_types: list) -> list:
     """Return a list of devices of multiple types."""
     return [
         dev
-        for dev_type, devices in lge_devices.items()
+        for dev_type, devices in lge_devices_custom.items()
         for dev in devices
         if dev_type in dev_types
     ]
