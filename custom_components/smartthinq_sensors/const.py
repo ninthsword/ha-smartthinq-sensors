@@ -17,7 +17,7 @@ CONF_USE_HA_SESSION = "use_ha_session"
 CONF_USE_REDIRECT = "use_redirect"
 
 CLIENT = "client"
-LGE_DEVICES = "lge_devices_custom"
+LGE_DEVICES = "lge_devices"
 
 LGE_DISCOVERY_NEW = f"{DOMAIN}_discovery_new"
 
