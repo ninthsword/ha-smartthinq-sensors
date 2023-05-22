@@ -59,10 +59,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ water heater setup...")
 
     @callback
-    def _async_discover_device(lge_devices: dict) -> None:
+    def _async_discover_device(lge_devices_custom: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices:
+        if not lge_devices_custom:
             return
 
         lge_water_heater = []
@@ -71,7 +71,7 @@ async def async_setup_entry(
         lge_water_heater.extend(
             [
                 LGEWHWaterHeater(lge_device)
-                for lge_device in lge_devices.get(DeviceType.WATER_HEATER, [])
+                for lge_device in lge_devices_custom.get(DeviceType.WATER_HEATER, [])
             ]
         )
 
@@ -79,7 +79,7 @@ async def async_setup_entry(
         lge_water_heater.extend(
             [
                 LGEACWaterHeater(lge_device)
-                for lge_device in lge_devices.get(DeviceType.AC, [])
+                for lge_device in lge_devices_custom.get(DeviceType.AC, [])
                 if lge_device.device.is_water_heater_supported
             ]
         )
