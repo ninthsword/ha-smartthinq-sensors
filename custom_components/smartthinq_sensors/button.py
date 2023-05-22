@@ -78,10 +78,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ button setup...")
 
     @callback
-    def _async_discover_device(lge_devices: dict) -> None:
+    def _async_discover_device(lge_devices_custom: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices:
+        if not lge_devices_custom:
             return
 
         lge_button = []
@@ -92,7 +92,7 @@ async def async_setup_entry(
                 LGEButton(lge_device, button_desc)
                 for button_desc in WASH_DEV_BUTTON
                 for lge_device in get_multiple_devices_types(
-                    lge_devices, WM_DEVICE_TYPES
+                    lge_devices_custom, WM_DEVICE_TYPES
                 )
                 if _button_exist(lge_device, button_desc)
             ]
