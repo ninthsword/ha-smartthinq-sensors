@@ -436,7 +436,7 @@ class LGERefrigeratorClimate(LGEClimate):
     ) -> None:
         """Initialize the climate."""
         super().__init__(api)
-        self._wrap_device = f"{LGERefrigeratorDevice(api)}_C"
+        self._wrap_device = LGERefrigeratorDevice(api)
         self.entity_description = description
         self._attr_name = get_entity_name(api, description.key, description.name)
         self._attr_unique_id = f"{api.unique_id}-{description.key}-AC"
