@@ -379,22 +379,22 @@ class Device:
     @property
     def device_info(self) -> DeviceInfo:
         """Return 'device_info' for this device."""
-        return f"{self._device_info}_C"
+        return self._device_info
 
     @property
     def unique_id(self) -> str:
         """Return unique id for this device."""
-        return f"{self._attr_unique_id}_C"
+        return self._attr_unique_id
 
     @property
     def name(self) -> str:
         """Return name for this device."""
-        return f"{self._attr_name}_C"
+        return self._attr_name
 
     @property
     def model_info(self) -> ModelInfo | None:
         """Return 'model_info' for this device."""
-        return f"{self._model_info}_C"
+        return self._model_info
 
     @property
     def available_features(self) -> dict:
