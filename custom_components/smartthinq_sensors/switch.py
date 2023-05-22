@@ -156,10 +156,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ switch setup...")
 
     @callback
-    def _async_discover_device(lge_devices: dict) -> None:
+    def _async_discover_device(lge_devices_custom: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices:
+        if not lge_devices_custom:
             return
 
         lge_switch = []
@@ -170,7 +170,7 @@ async def async_setup_entry(
                 LGESwitch(lge_device, switch_desc)
                 for switch_desc in WASH_DEV_SWITCH
                 for lge_device in get_multiple_devices_types(
-                    lge_devices, WM_DEVICE_TYPES
+                    lge_devices_custom, WM_DEVICE_TYPES
                 )
                 if _switch_exist(lge_device, switch_desc)
             ]
@@ -181,7 +181,7 @@ async def async_setup_entry(
             [
                 LGESwitch(lge_device, switch_desc)
                 for switch_desc in REFRIGERATOR_SWITCH
-                for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
+                for lge_device in lge_devices_custom.get(DeviceType.REFRIGERATOR, [])
                 if _switch_exist(lge_device, switch_desc)
             ]
         )
@@ -191,7 +191,7 @@ async def async_setup_entry(
             [
                 LGESwitch(lge_device, switch_desc)
                 for switch_desc in AC_SWITCH
-                for lge_device in lge_devices.get(DeviceType.AC, [])
+                for lge_device in lge_devices_custom.get(DeviceType.AC, [])
                 if _switch_exist(lge_device, switch_desc)
             ]
         )
@@ -200,7 +200,7 @@ async def async_setup_entry(
         lge_switch.extend(
             [
                 LGEDuctSwitch(lge_device, duct_zone)
-                for lge_device in lge_devices.get(DeviceType.AC, [])
+                for lge_device in lge_devices_custom.get(DeviceType.AC, [])
                 for duct_zone in lge_device.device.duct_zones
             ]
         )
