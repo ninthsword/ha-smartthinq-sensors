@@ -165,16 +165,27 @@ class LGEACClimate(LGEClimate):
         self._attr_name = api.name
         self._attr_unique_id = f"{api.unique_id}-AC"
         self._attr_fan_modes = self._device.fan_speeds
-        self._attr_swing_modes = [
-            f"{SWING_PREFIX[0]}{mode}" for mode in self._device.vertical_step_modes
-        ] + [f"{SWING_PREFIX[1]}{mode}" for mode in self._device.horizontal_step_modes]
+        
         self._attr_preset_mode = None
 
         self._hvac_mode_lookup: dict[str, HVACMode] | None = None
         self._preset_mode_lookup: dict[str, str] | None = None
-        self._support_ver_swing = len(self._device.vertical_step_modes) > 0
-        self._support_hor_swing = len(self._device.horizontal_step_modes) > 0
+        
+        if self._device.model_info.model_type == "RAC":
+            self._attr_swing_modes = [
+                f"{SWING_PREFIX[0]}{mode}" if for mode in self._device.vertical_step_modes
+            ] + [f"{SWING_PREFIX[1]}{mode}" for mode in self._device.horizontal_step_modes]
+            self._support_ver_swing = len(self._device.vertical_step_modes) > 0
+            self._support_hor_swing = len(self._device.horizontal_step_modes) > 0
+        elif self._device.model_info.model_type == "PAC":
+            self._attr_swing_modes = [
+                f"{SWING_PREFIX[0]}{mode}" if for mode in self._device.vertical_swing_modes
+            ] + [f"{SWING_PREFIX[1]}{mode}" for mode in self._device.horizontal_swing_modes]
+            self._support_ver_swing = len(self._device.vertical_swing_modes) > 0
+            self._support_hor_swing = len(self._device.horizontal_swing_modes) > 0
+        
         self._set_hor_swing = self._support_hor_swing and not self._support_ver_swing
+        self._set_ver_swing = self._support_ver_swing and not self._support_hor_swing ###
 
     def _available_hvac_modes(self) -> dict[str, HVACMode]:
         """Return available hvac modes from lookup dict."""
@@ -207,9 +218,15 @@ class LGEACClimate(LGEClimate):
     def _get_swing_mode(self, hor_mode=False) -> str | None:
         """Return the current swing mode for vert of hor mode."""
         if hor_mode:
-            mode = self._api.state.horizontal_step_mode
+            if self._device.model_info.model_type == "RAC":
+               mode = self._api.state.horizontal_step_mode
+            elif self._device.model_info.model_type == "PAC":
+               mode = self._api.state.horizontal_swing_mode     
         else:
-            mode = self._api.state.vertical_step_mode
+            if self._device.model_info.model_type == "RAC":
+                mode = self._api.state.vertical_step_mode
+            elif self._device.model_info.model_type == "PAC":
+                mode = self._api.state.vertical_swing_mode
         if mode:
             return f"{SWING_PREFIX[1 if hor_mode else 0]}{mode}"
         return None
@@ -373,27 +390,45 @@ class LGEACClimate(LGEClimate):
         """Set new target swing mode."""
         avl_mode = False
         curr_mode = None
+        set_ver_swing = swing_mode.startswith(SWING_PREFIX[0])
         set_hor_swing = swing_mode.startswith(SWING_PREFIX[1])
         dev_mode = remove_prefix(swing_mode, SWING_PREFIX[1 if set_hor_swing else 0])
-        if set_hor_swing:
-            if dev_mode in self._device.horizontal_step_modes:
-                avl_mode = True
-                curr_mode = self._api.state.horizontal_step_mode
-        elif swing_mode.startswith(SWING_PREFIX[0]):
-            if dev_mode in self._device.vertical_step_modes:
-                avl_mode = True
-                curr_mode = self._api.state.vertical_step_mode
-
+        if self._device.model_info.model_type == "RAC":
+            if set_hor_swing:
+                if dev_mode in self._device.horizontal_step_modes:
+                    avl_mode = True
+                    curr_mode = self._api.state.horizontal_step_mode
+            elif swing_mode.startswith(SWING_PREFIX[0]):
+                if dev_mode in self._device.vertical_step_modes:
+                    avl_mode = True
+                    curr_mode = self._api.state.vertical_step_mode
+        elif self._device.model_info.model_type == "PAC":
+            if set_hor_swing:
+                if dev_mode in self._device.horizontal_swing_modes:
+                    avl_mode = True
+                    curr_mode = self._api.state.horizontal_swing_mode
+            elif swing_mode.startswith(SWING_PREFIX[0]):
+                if dev_mode in self._device.vertical_swing_modes:
+                    avl_mode = True
+                    curr_mode = self._api.state.vertical_swing_mode            
+                
         if not avl_mode:
             raise ValueError(f"Invalid swing_mode [{swing_mode}].")
 
         if curr_mode != dev_mode:
-            if set_hor_swing:
-                await self._device.set_horizontal_step_mode(dev_mode)
-            else:
-                await self._device.set_vertical_step_mode(dev_mode)
+            if self._device.model_info.model_type == "RAC":
+                if set_hor_swing:
+                    await self._device.set_horizontal_step_mode(dev_mode)
+                else:
+                    await self._device.set_vertical_step_mode(dev_mode)
+             elif self._device.model_info.model_type == "PAC":
+                if set_hor_swing:
+                    await self._device.set_horizontal_swing_mode(dev_mode)
+                else:
+                    await self._device.set_vertical_swing_mode(dev_mode)                
             self._api.async_set_updated()
         self._set_hor_swing = set_hor_swing
+        self._set_ver_swing = set_ver_swing
 
     async def async_turn_on(self) -> None:
         """Turn the entity on."""
