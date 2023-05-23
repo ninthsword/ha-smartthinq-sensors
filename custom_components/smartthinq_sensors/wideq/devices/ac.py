@@ -287,6 +287,8 @@ class AirConditionerDevice(Device):
         self._supported_fan_speeds = None
         self._supported_horizontal_steps = None
         self._supported_vertical_steps = None
+        self._supported_horizontal_swings = None ###
+        self._supported_vertical_swings = None ###
         self._supported_mode_jet = None
         self._temperature_range = None
         self._hot_water_temperature_range = None
