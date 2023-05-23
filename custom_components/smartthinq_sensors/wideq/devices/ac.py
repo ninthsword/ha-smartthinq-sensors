@@ -1142,24 +1142,24 @@ class AirConditionerStatus(DeviceStatus):
         except ValueError:
             return None
     
-    #@property
-    #def vertical_step_mode(self):
-    #    """Return current vertical step mode."""
-    #    key = self._get_state_key(STATE_WDIR_VSTEP)
-    #    if (value := self.lookup_enum(key, True)) is None:
-    #        return None
-    #    try:
-    #        return ACVStepMode(value).name
-    #    except ValueError:
-    #        return None
-
     @property
-    def is_vertical_swing_on(self):
-        """Return current vertical swing mode."""
-        key = self._get_state_key(STATE_WDIR_VSWING)
+    def vertical_step_mode(self):
+        """Return current vertical step mode."""
+        key = self._get_state_key(STATE_WDIR_VSTEP)
         if (value := self.lookup_enum(key, True)) is None:
             return None
-        return value == MODE_ON
+        try:
+            return ACVStepMode(value).name
+        except ValueError:
+            return None
+
+    #@property
+    #def is_vertical_swing_on(self):
+    #    """Return current vertical swing mode."""
+    #    key = self._get_state_key(STATE_WDIR_VSWING)
+    #    if (value := self.lookup_enum(key, True)) is None:
+    #        return None
+    #    return value == MODE_ON
 
     @property
     def current_temp(self):
