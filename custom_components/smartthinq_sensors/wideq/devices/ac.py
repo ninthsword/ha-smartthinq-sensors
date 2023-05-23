@@ -797,7 +797,7 @@ class AirConditionerDevice(Device):
         await self.set(keys[0], keys[1], key=keys[2], value=step_mode)
 
     async def set_vertical_swing_mode(self, mode): ###
-       """Set the vertical swing to a value from the `ACVSwinMode` enum.""" ###
+        """Set the vertical swing to a value from the `ACVSwingMode` enum.""" ###
         if mode not in self.vertical_swing_modes:
             raise ValueError(f"Invalid vertical swing mode: {mode}")
         keys = self._get_cmd_keys(CMD_STATE_WDIR_VSWING)
