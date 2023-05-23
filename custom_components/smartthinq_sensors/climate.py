@@ -425,7 +425,7 @@ class LGEACClimate(LGEClimate):
                 if set_hor_swing:
                     await self._device.set_horizontal_swing_mode(dev_mode)
                 else:
-                    await self._device.set_vertical_swing_mode(dev_mode)                
+                    await self._device.set_vertical_swing_mode(dev_mode)
             self._api.async_set_updated()
         self._set_hor_swing = set_hor_swing
         self._set_ver_swing = set_ver_swing
