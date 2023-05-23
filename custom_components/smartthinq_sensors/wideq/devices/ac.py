@@ -626,19 +626,12 @@ class AirConditionerDevice(Device):
         """Return a list of available horizontal swing modes."""
         if self._supported_horizontal_swings is None:
             self._supported_horizontal_swings = []
+            if len(self.horizontal_step_modes) > 0:
+                return []
             if not self._is_mode_supported(SUPPORT_VANE_HSWING):
                 return []
-
-            key = self._get_state_key(STATE_WDIR_HSWING)
-            values = self.model_info.value(key)
-            if not hasattr(values, "options"):
-                return []
-
-            mapping = values.options
-            mode_list = [e.value for e in ACHSwingMode]
-            self._supported_horizontal_swings = [
-                ACHSwingMode(o).name for o in mapping.values() if o in mode_list
-            ]
+            
+            self._supported_horizontal_swings = [e.name for e in ACHSwingMode]
         return self._supported_horizontal_swings
 
     @property
@@ -646,19 +639,12 @@ class AirConditionerDevice(Device):
         """Return a list of available vertical swing modes."""
         if self._supported_vertical_swings is None:
             self._supported_vertical_swings = []
+            if len(self.vertical_step_modes) > 0:
+                return []
             if not self._is_mode_supported(SUPPORT_VANE_VSWING):
                 return []
-
-            key = self._get_state_key(STATE_WDIR_VSWING)
-            values = self.model_info.value(key)
-            if not hasattr(values, "options"):
-                return []
-
-            mapping = values.options
-            mode_list = [e.value for e in ACVSwingMode]
-            self._supported_vertical_swings = [
-                ACVSwingMode(o).name for o in mapping.values() if o in mode_list
-            ]
+            
+            self._supported_vertical_swings = [e.name for e in ACVSwingMode]
         return self._supported_vertical_swings
     
     @property
