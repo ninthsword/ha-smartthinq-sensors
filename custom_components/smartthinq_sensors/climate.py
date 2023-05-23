@@ -220,7 +220,7 @@ class LGEACClimate(LGEClimate):
             if self._device.model_info.model_type == "RAC":
                mode = self._api.state.horizontal_step_mode
             elif self._device.model_info.model_type == "PAC":
-               mode = self._api.state.horizontal_swing_mode     
+               mode = self._api.state.horizontal_swing_mode
         else:
             if self._device.model_info.model_type == "RAC":
                 mode = self._api.state.vertical_step_mode
@@ -389,7 +389,6 @@ class LGEACClimate(LGEClimate):
         """Set new target swing mode."""
         avl_mode = False
         curr_mode = None
-        set_ver_swing = swing_mode.startswith(SWING_PREFIX[0])
         set_hor_swing = swing_mode.startswith(SWING_PREFIX[1])
         dev_mode = remove_prefix(swing_mode, SWING_PREFIX[1 if set_hor_swing else 0])
         if self._device.model_info.model_type == "RAC":
