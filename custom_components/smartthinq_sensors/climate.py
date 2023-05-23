@@ -173,13 +173,13 @@ class LGEACClimate(LGEClimate):
         
         if self._device.model_info.model_type == "RAC":
             self._attr_swing_modes = [
-                f"{SWING_PREFIX[0]}{mode}" if for mode in self._device.vertical_step_modes
+                f"{SWING_PREFIX[0]}{mode}" for mode in self._device.vertical_step_modes
             ] + [f"{SWING_PREFIX[1]}{mode}" for mode in self._device.horizontal_step_modes]
             self._support_ver_swing = len(self._device.vertical_step_modes) > 0
             self._support_hor_swing = len(self._device.horizontal_step_modes) > 0
         elif self._device.model_info.model_type == "PAC":
             self._attr_swing_modes = [
-                f"{SWING_PREFIX[0]}{mode}" if for mode in self._device.vertical_swing_modes
+                f"{SWING_PREFIX[0]}{mode}" for mode in self._device.vertical_swing_modes
             ] + [f"{SWING_PREFIX[1]}{mode}" for mode in self._device.horizontal_swing_modes]
             self._support_ver_swing = len(self._device.vertical_swing_modes) > 0
             self._support_hor_swing = len(self._device.horizontal_swing_modes) > 0
