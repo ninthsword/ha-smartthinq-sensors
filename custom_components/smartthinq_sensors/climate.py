@@ -421,7 +421,7 @@ class LGEACClimate(LGEClimate):
                     await self._device.set_horizontal_step_mode(dev_mode)
                 else:
                     await self._device.set_vertical_step_mode(dev_mode)
-             elif self._device.model_info.model_type == "PAC":
+            elif self._device.model_info.model_type == "PAC":
                 if set_hor_swing:
                     await self._device.set_horizontal_swing_mode(dev_mode)
                 else:
