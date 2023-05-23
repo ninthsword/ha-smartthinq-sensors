@@ -636,7 +636,7 @@ class AirConditionerDevice(Device):
 
             mapping = values.options
             mode_list = [e.value for e in ACHSwingMode]
-            self._supported_horizontal_steps = [
+            self._supported_horizontal_swings = [
                 ACHSwingMode(o).name for o in mapping.values() if o in mode_list
             ]
         return self._supported_horizontal_swings
@@ -656,7 +656,7 @@ class AirConditionerDevice(Device):
 
             mapping = values.options
             mode_list = [e.value for e in ACVSwingMode]
-            self._supported_vertical_steps = [
+            self._supported_vertical_swings = [
                 ACVSwingMode(o).name for o in mapping.values() if o in mode_list
             ]
         return self._supported_vertical_swings
