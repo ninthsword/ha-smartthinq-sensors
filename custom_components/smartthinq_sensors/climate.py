@@ -44,6 +44,10 @@ HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
 PRESET_MODE_LOOKUP: dict[str, dict[str, HVACMode]] = {
     ACMode.ENERGY_SAVING.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
     ACMode.ENERGY_SAVER.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
+    ACMode.ENERGYSAVING.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
+    ACOp.RIGHT_ON.name: {"preset": PRESET_우측운전, "hvac": HVACMode.COOL},
+    ACOp.LEFT_ON.name: {"preset": PRESET_좌측운전, "hvac": HVACMode.COOL},
+    ACOp.ALL_ON.name: {"preset": PRESET_일반, "hvac": HVACMode.COOL},
 }
 
 ATTR_SWING_HORIZONTAL = "좌우회전" ###수정
