@@ -37,7 +37,10 @@ HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
     ACMode.HEAT.name: HVACMode.HEAT,
     ACMode.DRY.name: HVACMode.DRY,
     ACMode.COOL.name: HVACMode.COOL,
-    ACMode.FAN.name: HVACMode.FAN_ONLY,
+    if self._device.model_info.model_type == "RAC":
+        ACMode.FAN.name: HVACMode.FAN_ONLY,
+    elif self._device.model_info.model_type == "PAC":
+        ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,     
     ACMode.ACO.name: HVACMode.HEAT_COOL,
 }
 
