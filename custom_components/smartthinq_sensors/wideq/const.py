@@ -39,6 +39,11 @@ class AirConditionerFeatures(StrEnum):
     FILTER_MAIN_USE = "filter_main_use"
     LIGHTING_DISPLAY = "lighting_display"
     MODE_AIRCLEAN = "mode_airclean"
+    ICEVALLEY = "mode_icevalley"                         #####
+    SMARTCARE = "mode_smartcare"                         #####
+    LONGPOWER = "mode_longpower"                         #####
+    POWERSAVE = "mode_powersave"                         #####
+    AUTODRY = "mode_autodry"                             #####
     MODE_AWHP_SILENT = "mode_awhp_silent"
     MODE_JET = "mode_jet"
     ROOM_TEMP = "room_temperature"
