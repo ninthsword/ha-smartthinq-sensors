@@ -32,17 +32,24 @@ from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, AirCondition
 ATTR_FRIDGE = "fridge"
 ATTR_FREEZER = "freezer"
 
-HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
-    ACMode.AI.name: HVACMode.AUTO,
-    ACMode.HEAT.name: HVACMode.HEAT,
-    ACMode.DRY.name: HVACMode.DRY,
-    ACMode.COOL.name: HVACMode.COOL,
-    if self._device.model_info.model_type == "RAC":
+if self._device.model_info.model_type == "RAC":
+    HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+        ACMode.AI.name: HVACMode.AUTO,
+        ACMode.HEAT.name: HVACMode.HEAT,
+        ACMode.DRY.name: HVACMode.DRY,
+        ACMode.COOL.name: HVACMode.COOL,
         ACMode.FAN.name: HVACMode.FAN_ONLY,
-    elif self._device.model_info.model_type == "PAC":
-        ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,     
-    ACMode.ACO.name: HVACMode.HEAT_COOL,
-}
+        ACMode.ACO.name: HVACMode.HEAT_COOL,
+    }
+elif self._device.model_info.model_type == "PAC":
+    HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+        ACMode.AI.name: HVACMode.AUTO,
+        ACMode.HEAT.name: HVACMode.HEAT,
+        ACMode.DRY.name: HVACMode.DRY,
+        ACMode.COOL.name: HVACMode.COOL,
+        ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
+        ACMode.ACO.name: HVACMode.HEAT_COOL,
+    }
 
 PRESET_MODE_LOOKUP: dict[str, dict[str, HVACMode]] = {
     ACMode.ENERGY_SAVING.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
