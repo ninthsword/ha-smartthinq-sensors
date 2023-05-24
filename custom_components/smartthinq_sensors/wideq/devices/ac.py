@@ -1348,6 +1348,12 @@ class AirConditionerStatus(DeviceStatus):
         key = self._get_state_key(STATE_MODE_AIRCLEAN)
         if (value := self.lookup_enum(key, True)) is None:
             return None
+        if self.model_info.model_type == "RAC":
+            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
+            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
+        elif self.model_info.model_type == "PAC":
+            MODE_AIRCLEAN_OFF = "@OFF"
+            MODE_AIRCLEAN_ON = "@ON"
         status = value == MODE_AIRCLEAN_ON
         return self._update_feature(AirConditionerFeatures.MODE_AIRCLEAN, status, False)
 
