@@ -145,8 +145,8 @@ LIGHTING_DISPLAY_ON = "1"
 MODE_OFF = "@OFF"
 MODE_ON = "@ON"
 
-MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
-MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
+#MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
+#MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
 
 ZONE_OFF = "0"
 ZONE_ON = "1"
@@ -896,9 +896,12 @@ class AirConditionerDevice(Device):
 
         keys = self._get_cmd_keys(CMD_STATE_MODE_AIRCLEAN)
         if self.model_info.model_type == "RAC":
-            mode_key = MODE_AIRCLEAN_ON if status else MODE_AIRCLEAN_OFF
+            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
+            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
         elif self.model_info.model_type == "PAC":
-            mode_key = MODE_ON if status else MODE_OFF
+            MODE_AIRCLEAN_OFF = "@OFF"
+            MODE_AIRCLEAN_ON = "@ON"
+        mode_key = MODE_AIRCLEAN_ON if status else MODE_AIRCLEAN_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
         
@@ -1345,10 +1348,7 @@ class AirConditionerStatus(DeviceStatus):
         key = self._get_state_key(STATE_MODE_AIRCLEAN)
         if (value := self.lookup_enum(key, True)) is None:
             return None
-        if self.model_info.model_type == "RAC":    
-            status = value == MODE_AIRCLEAN_ON
-        elif self.model_info.model_type == "RAC":
-            status = value == MODE_ON
+        status = value == MODE_AIRCLEAN_ON
         return self._update_feature(AirConditionerFeatures.MODE_AIRCLEAN, status, False)
 
     @property                                                                                       ####
