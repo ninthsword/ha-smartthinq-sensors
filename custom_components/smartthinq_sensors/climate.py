@@ -31,15 +31,7 @@ from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, AirCondition
 # general ac attributes
 ATTR_FRIDGE = "fridge"
 ATTR_FREEZER = "freezer"
-    
-    def __init__(self, api: LGEDevice) -> None:
-        """Initialize the climate."""
-        super().__init__(api)
-        self._device: AirConditionerDevice = api.device
-        self._attr_name = api.name
-        self._attr_unique_id = f"{api.unique_id}-AC"
-        self._attr_fan_modes = self._device.fan_speeds
-        
+
 if AirConditionerDevice.model_info.model_type == "RAC":
     HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
         ACMode.AI.name: HVACMode.AUTO,
