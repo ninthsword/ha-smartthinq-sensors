@@ -26,7 +26,7 @@ from . import LGEDevice
 from .const import DOMAIN, LGE_DEVICES, LGE_DISCOVERY_NEW
 from .device_helpers import TEMP_UNIT_LOOKUP, LGERefrigeratorDevice, get_entity_name
 from .wideq import AirConditionerFeatures, DeviceType, TemperatureUnit
-from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, AirConditionerDevice
+from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, ACOp, AirConditionerDevice
 
 # general ac attributes
 ATTR_FRIDGE = "fridge"
