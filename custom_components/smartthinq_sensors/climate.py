@@ -32,26 +32,14 @@ from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, AirCondition
 ATTR_FRIDGE = "fridge"
 ATTR_FREEZER = "freezer"
 
-
-self._device: AirConditionerDevice = LGEDevice.device
-if self._device.model_info.model_type == "RAC":
-    HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
-        ACMode.AI.name: HVACMode.AUTO,
-        ACMode.HEAT.name: HVACMode.HEAT,
-        ACMode.DRY.name: HVACMode.DRY,
-        ACMode.COOL.name: HVACMode.COOL,
-        ACMode.FAN.name: HVACMode.FAN_ONLY,
-        ACMode.ACO.name: HVACMode.HEAT_COOL,
-    }
-elif self._device.model_info.model_type == "PAC":
-    HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
-        ACMode.AI.name: HVACMode.AUTO,
-        ACMode.HEAT.name: HVACMode.HEAT,
-        ACMode.DRY.name: HVACMode.DRY,
-        ACMode.COOL.name: HVACMode.COOL,
-        ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
-        ACMode.ACO.name: HVACMode.HEAT_COOL,
-    }
+#HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+#        ACMode.AI.name: HVACMode.AUTO,
+#        ACMode.HEAT.name: HVACMode.HEAT,
+#        ACMode.DRY.name: HVACMode.DRY,
+#        ACMode.COOL.name: HVACMode.COOL,
+#        ACMode.FAN.name: HVACMode.FAN_ONLY,
+#        ACMode.ACO.name: HVACMode.HEAT_COOL,
+#    }
 
 PRESET_MODE_LOOKUP: dict[str, dict[str, HVACMode]] = {
     ACMode.ENERGY_SAVING.name: {"preset": PRESET_ECO, "hvac": HVACMode.COOL},
@@ -202,6 +190,24 @@ class LGEACClimate(LGEClimate):
     def _available_hvac_modes(self) -> dict[str, HVACMode]:
         """Return available hvac modes from lookup dict."""
         if self._hvac_mode_lookup is None:
+            if self._device.model_info.model_type == "RAC":
+                HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+                    ACMode.AI.name: HVACMode.AUTO,
+                    ACMode.HEAT.name: HVACMode.HEAT,
+                    ACMode.DRY.name: HVACMode.DRY,
+                    ACMode.COOL.name: HVACMode.COOL,
+                    ACMode.FAN.name: HVACMode.FAN_ONLY,
+                    ACMode.ACO.name: HVACMode.HEAT_COOL,
+                }            
+            elif self._device.model_info.model_type == "PAC":
+                HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+                    ACMode.AI.name: HVACMode.AUTO,
+                    ACMode.HEAT.name: HVACMode.HEAT,
+                    ACMode.DRY.name: HVACMode.DRY,
+                    ACMode.COOL.name: HVACMode.COOL,
+                    ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
+                    ACMode.ACO.name: HVACMode.HEAT_COOL,
+                }
             self._hvac_mode_lookup = {
                 key: mode
                 for key, mode in HVAC_MODE_LOOKUP.items()
