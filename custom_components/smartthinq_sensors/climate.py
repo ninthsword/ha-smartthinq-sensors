@@ -32,7 +32,10 @@ from .wideq.devices.ac import AWHP_MAX_TEMP, AWHP_MIN_TEMP, ACMode, AirCondition
 ATTR_FRIDGE = "fridge"
 ATTR_FREEZER = "freezer"
 
-if AirConditionerDevice.model_info.model_type == "RAC":
+super().__init__(LGEDevice)
+self._device: AirConditionerDevice = LGEDevice.device
+
+if self._device.model_info.model_type == "RAC":
     HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
         ACMode.AI.name: HVACMode.AUTO,
         ACMode.HEAT.name: HVACMode.HEAT,
@@ -41,7 +44,7 @@ if AirConditionerDevice.model_info.model_type == "RAC":
         ACMode.FAN.name: HVACMode.FAN_ONLY,
         ACMode.ACO.name: HVACMode.HEAT_COOL,
     }
-elif AirConditionerDevice.model_info.model_type == "PAC":
+elif self._device.model_info.model_type == "PAC":
     HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
         ACMode.AI.name: HVACMode.AUTO,
         ACMode.HEAT.name: HVACMode.HEAT,
