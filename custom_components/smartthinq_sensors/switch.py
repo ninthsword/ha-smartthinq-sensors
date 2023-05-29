@@ -124,41 +124,41 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         turn_on_fn=lambda x: x.device.set_mode_awhp_silent(True),
         available_fn=lambda x: x.is_power_on,
     ),
-    ThinQSwitchEntityDescription(                                   ####
-        key=AirConditionerFeatures.MODE_ICEVALLEY,                       ####
-        name="Icevalley",                                           ####
-        icon="mdi:snowflake",                                       ####
-        turn_off_fn=lambda x: x.device.set_icevalley(False),        ####
-        turn_on_fn=lambda x: x.device.set_icevalley(True),          ####
-    ),                                                              ####
-    ThinQSwitchEntityDescription(                                   ####
-        key=AirConditionerFeatures.MODE_SMARTCARE,                       ####
-        name="Smartcare",                                           ####
-        icon="mdi:fan-auto",                                        ####
-        turn_off_fn=lambda x: x.device.set_smartcare(False),        ####
-        turn_on_fn=lambda x: x.device.set_smartcare(True),          ####
-    ),                                                              ####
-    ThinQSwitchEntityDescription(                                   ####
-        key=AirConditionerFeatures.MODE_LONGPOWER,                       ####
-        name="Longpower",                                           ####
-        icon="mdi:wind-power",                                      ####
-        turn_off_fn=lambda x: x.device.set_longpower(False),        ####
-        turn_on_fn=lambda x: x.device.set_longpower(True),          ####
-    ),                                                              ####
-    ThinQSwitchEntityDescription(                                   ####
-        key=AirConditionerFeatures.MODE_POWERSAVE,                       ####
-        name="Powersave",                                           ####
-        icon="mdi:leaf",                                            ####
-        turn_off_fn=lambda x: x.device.set_powersave(False),        ####
-        turn_on_fn=lambda x: x.device.set_powersave(True),          ####
-    ),                                                              ####
-    ThinQSwitchEntityDescription(                                   ####
-        key=AirConditionerFeatures.MODE_AUTODRY,                         ####
-        name="Autodry",                                             ####
-        icon="mdi:hair-dryer-outline",                              ####
-        turn_off_fn=lambda x: x.device.set_autodry(False),          ####
-        turn_on_fn=lambda x: x.device.set_autodry(True),            ####
-    ),                                                              ####
+    ThinQSwitchEntityDescription(                                    
+        key=AirConditionerFeatures.MODE_ICEVALLEY,                        
+        name="Icevalley",                                            
+        icon="mdi:snowflake",                                        
+        turn_off_fn=lambda x: x.device.set_icevalley(False),         
+        turn_on_fn=lambda x: x.device.set_icevalley(True),           
+    ),                                                               
+    ThinQSwitchEntityDescription(                                    
+        key=AirConditionerFeatures.MODE_SMARTCARE,                        
+        name="Smartcare",                                            
+        icon="mdi:fan-auto",                                         
+        turn_off_fn=lambda x: x.device.set_smartcare(False),         
+        turn_on_fn=lambda x: x.device.set_smartcare(True),           
+    ),                                                               
+    ThinQSwitchEntityDescription(                                    
+        key=AirConditionerFeatures.MODE_LONGPOWER,                        
+        name="Longpower",                                            
+        icon="mdi:wind-power",                                       
+        turn_off_fn=lambda x: x.device.set_longpower(False),         
+        turn_on_fn=lambda x: x.device.set_longpower(True),           
+    ),                                                               
+    ThinQSwitchEntityDescription(                                    
+        key=AirConditionerFeatures.MODE_POWERSAVE,                        
+        name="Powersave",                                            
+        icon="mdi:leaf",                                             
+        turn_off_fn=lambda x: x.device.set_powersave(False),         
+        turn_on_fn=lambda x: x.device.set_powersave(True),           
+    ),                                                               
+    ThinQSwitchEntityDescription(                                    
+        key=AirConditionerFeatures.MODE_AUTODRY,                          
+        name="Autodry",                                              
+        icon="mdi:hair-dryer-outline",                               
+        turn_off_fn=lambda x: x.device.set_autodry(False),           
+        turn_on_fn=lambda x: x.device.set_autodry(True),             
+    ),                                                               
 )
 
 AC_DUCT_SWITCH = ThinQSwitchEntityDescription(
