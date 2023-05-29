@@ -13,28 +13,38 @@ from ..device_info import DeviceInfo
 
 SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
 SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
-SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"] ###
-SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"] ###
+SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"]                              ###
+SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"]                            ###
 SUPPORT_DUCT_ZONE = ["SupportDuctZoneType", "support.airState.ductZone.type"]
+
+SUPPORT_VANE_HSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_LEFT_RIGHT_W"]            ###
+SUPPORT_VANE_VSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_UP_DOWN_W"]               ###
+SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]                   ####
+SUPPORT_SMARTCARE = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_SMARTCARE_W"]                   ####
+SUPPORT_LONGPOWER = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_LONGPOWER_W"]                   ####
+
+#PAC
 SUPPORT_PAC_MODE = ["SupportPACMode", "support.pacMode"]
+
+SUPPORT_HOT_WATER = [SUPPORT_PAC_MODE, "@HOTWATER"]
+
+SUPPORT_AIRCLEAN_PAC = [SUPPORT_PAC_MODE, "@AIRCLEAN"]                                      ####
+SUPPORT_AUTODRY_PAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                            ####
+SUPPORT_POWERSAVE_PAC = [SUPPORT_PAC_MODE, "@ENERGYSAVING"]                                     ####
+
+#RAC
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
 SUPPORT_RAC_SUBMODE = ["SupportRACSubMode", "support.racSubMode"]
 
 SUPPORT_VANE_HSTEP = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_DIRECTION_STEP_LEFT_RIGHT_W"]
 SUPPORT_VANE_VSTEP = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_DIRECTION_STEP_UP_DOWN_W"]
-SUPPORT_VANE_HSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_LEFT_RIGHT_W"] ###
-SUPPORT_VANE_VSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_UP_DOWN_W"] ###
 SUPPORT_JET_COOL = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_COOL_JET_W"]
 SUPPORT_JET_HEAT = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_HEAT_JET_W"]
-SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]
-SUPPORT_HOT_WATER = [SUPPORT_PAC_MODE, "@HOTWATER"]
 
-SUPPORT_AIRCLEAN_PAC = [SUPPORT_PAC_MODE, "@AIRCLEAN"]                                      ####
-SUPPORT_AUTODRY = [SUPPORT_PAC_MODE, "@AUTODRY"]                                            ####
-SUPPORT_POWERSAVE = [SUPPORT_PAC_MODE, "@ENERGYSAVING"]                                     ####
-SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]                   ####
-SUPPORT_SMARTCARE = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_SMARTCARE_W"]                   ####
-SUPPORT_LONGPOWER = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_LONGPOWER_W"]                   ####
+SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]                                          ####
+SUPPORT_AUTODRY_RAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                            ####
+SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]                                     ####
+
 
 CTRL_BASIC = ["Control", "basicCtrl"]
 CTRL_WIND_DIRECTION = ["Control", "wDirCtrl"]
@@ -758,14 +768,20 @@ class AirConditionerDevice(Device):
     def is_mode_powersave_supported(self):                                                       ####
         """Return if Smartcare is supported."""                                             ####
         if self._is_mode_powersave_supported is None:                                            ####
-            self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE)       ####
+            if self.model_info.model_type == "RAC": ####
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_RAC)       ####
+            elif self.model_info.model_type == "PAC": ####
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)       ####
         return self._is_mode_powersave_supported                                                 ####
 
     @property                                                                               ####
     def is_mode_autodry_supported(self):                                                         ####
         """Return if Smartcare is supported."""                                             ####
         if self._is_mode_autodry_supported is None:                                              ####
-            self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY)           ####
+            if self.model_info.model_type == "RAC": ####
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)           ####
+            elif self.model_info.model_type == "PAC": ####
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)           ####
         return self._is_mode_autodry_supported                                                   ####
 
     @property
