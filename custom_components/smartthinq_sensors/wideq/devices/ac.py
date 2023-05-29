@@ -864,7 +864,10 @@ class AirConditionerDevice(Device):
         if speed not in self.fan_speeds:
             raise ValueError(f"Invalid fan speed: {speed}")
         keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
-        speed_value = self.model_info.enum_value(keys[2], ACFanSpeed[speed].value)
+        if self.model_info.model_type == "RAC":
+            speed_value = self.model_info.enum_value(keys[2], ACFanSpeedRAC[speed].value)
+        elif self.model_info.model_type == "PAC":
+            speed_value = self.model_info.enum_value(keys[2], ACFanSpeedPAC[speed].value)        
         await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
 
     async def set_horizontal_step_mode(self, mode):
@@ -1248,7 +1251,10 @@ class AirConditionerStatus(DeviceStatus):
         if (value := self.lookup_enum(key, True)) is None:
             return None
         try:
-            return ACFanSpeed(value).name
+            if self.model_info.model_type == "RAC":
+                return ACFanSpeedRAC(value).name
+            elif self.model_info.model_type == "PAC":
+                return ACFanSpeedPAC(value).name
         except ValueError:
             return None
 
