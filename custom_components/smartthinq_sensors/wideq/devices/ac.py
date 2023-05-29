@@ -275,8 +275,6 @@ class ACHSwingMode(Enum):  ####
     """The swing mode for an AC/HVAC device."""
 
     정지 = "@OFF"         ####
-    좌측회전 = "@LEFT_ON"     ####
-    우측회전 = "@RIGHT_ON"    ####
     회전 = "@ALL_ON"      ####
  
 class JetMode(Enum):
