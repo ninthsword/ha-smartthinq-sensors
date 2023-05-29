@@ -12,7 +12,7 @@ from ..device import Device, DeviceStatus
 from ..device_info import DeviceInfo
 
 SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
-SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
+SUPPORT_WIND_STRENGTH = ["WindStrength", "airState.windStrength"]   #SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
 SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"]
 SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"]
 SUPPORT_DUCT_ZONE = ["SupportDuctZoneType", "support.airState.ductZone.type"]
@@ -197,31 +197,33 @@ class ACMode(Enum):
     ENERGYSAVING = "@AC_MAIN_OPERATION_MODE_ENERGYSAVING_W"
 
 
-class ACFanSpeed(Enum):
+class ACFanSpeedRAC(Enum):
     """The fan speed for an AC/HVAC device."""
     
     약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
     중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
     강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
-    
     자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
     
-    우측약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-    우측중풍 = "@AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-    우측강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
-    좌측약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W"
-    좌측중풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W"
-    좌측강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W"
+class ACFanSpeedPAC(Enum):
+    """The fan speed for an AC/HVAC device."""
     
-    좌약우약 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-    좌약우중 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-    좌약우강 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
-    좌중우약 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-    좌중우중 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-    좌중우강 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
-    좌강우약 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-    좌강우중 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-    좌강우강 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    정지|약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+    정지|중풍 = "@AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+    정지|강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    약풍|정지 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W"
+    중풍|정지 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W"
+    강풍|정지 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W"
+    
+    약풍|약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+    약풍|중풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+    약풍|강풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    중풍|약풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+    중풍|중풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+    중풍|강풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    강풍|약풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+    강풍|중풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+    강풍|강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
 
 class ACVStepMode(Enum):
     """
@@ -616,10 +618,16 @@ class AirConditionerDevice(Device):
                 self._supported_fan_speeds = []
                 return []
             mapping = self.model_info.value(key).options
-            mode_list = [e.value for e in ACFanSpeed]
-            self._supported_fan_speeds = [
-                ACFanSpeed(o).name for o in mapping.values() if o in mode_list
-            ]
+            if self.model_info.model_type == "RAC":
+                mode_list = [e.value for e in ACFanSpeedRAC]
+                self._supported_fan_speeds = [
+                    ACFanSpeedRAC(o).name for o in mapping.values() if o in mode_list
+                ]
+            elif self.model_info.model_type == "PAC":
+                mode_list = [e.value for e in ACFanSpeedPAC]            
+                self._supported_fan_speeds = [
+                   ACFanSpeedPAC(o).name for o in mapping.values() if o in mode_list
+                ]
         return self._supported_fan_speeds
 
     @property
