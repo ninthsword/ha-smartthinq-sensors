@@ -42,7 +42,7 @@ SUPPORT_JET_COOL = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_COOL_JET_W"]
 SUPPORT_JET_HEAT = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_HEAT_JET_W"]
 
 SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]                                          ####
-SUPPORT_AUTODRY_RAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                            ####
+SUPPORT_AUTODRY_RAC = [SUPPORT_RAC_MODE, "@AUTODRY"]                                            ####
 SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]                                     ####
 
 
