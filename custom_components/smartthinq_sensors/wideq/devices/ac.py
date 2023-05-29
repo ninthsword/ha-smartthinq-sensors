@@ -199,14 +199,10 @@ class ACMode(Enum):
 
 class ACFanSpeed(Enum):
     """The fan speed for an AC/HVAC device."""
-    if self._device.model_info.model_type == "RAC":
-        약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
-        중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
-        강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
-    elif self._device.model_info.model_type == "PAC":
-        약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
-        중풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
-        강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    
+    약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
+    중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
+    강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
     
     자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
     
