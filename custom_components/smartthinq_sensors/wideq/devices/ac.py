@@ -1251,9 +1251,9 @@ class AirConditionerStatus(DeviceStatus):
         if (value := self.lookup_enum(key, True)) is None:
             return None
         try:
-            if self.model_info.model_type == "RAC":
+            if self._device.model_info.model_type == "RAC":
                 return ACFanSpeedRAC(value).name
-            elif self.model_info.model_type == "PAC":
+            elif self._device.model_info.model_type == "PAC":
                 return ACFanSpeedPAC(value).name
         except ValueError:
             return None
