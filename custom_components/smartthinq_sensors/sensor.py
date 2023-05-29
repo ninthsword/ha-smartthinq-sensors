@@ -251,6 +251,24 @@ AC_SENSORS: Tuple[ThinQSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
     ),
     ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.PM1,
+        name="PM1.0",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.PM1,
+    ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.PM2,
+        name="PM2.5",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.PM25,
+    ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.PM10,
+        name="PM10",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.PM10,
+    ),
+    ThinQSensorEntityDescription(
         key=AirConditionerFeatures.FILTER_MAIN_LIFE,
         name="Filter Remaining Life",
         icon="mdi:air-filter",
