@@ -28,9 +28,9 @@ SUPPORT_PAC_MODE = ["SupportPACMode", "support.pacMode"]
 
 SUPPORT_HOT_WATER = [SUPPORT_PAC_MODE, "@HOTWATER"]
 
-SUPPORT_AIRCLEAN_PAC = [SUPPORT_PAC_MODE, "@AIRCLEAN"]                                      ####
-SUPPORT_AUTODRY_PAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                            ####
-SUPPORT_POWERSAVE_PAC = [SUPPORT_PAC_MODE, "@ENERGYSAVING"]                                     ####
+SUPPORT_AIRCLEAN_PAC = [SUPPORT_PAC_MODE, "@AIRCLEAN"]                                       
+SUPPORT_AUTODRY_PAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                             
+SUPPORT_POWERSAVE_PAC = [SUPPORT_PAC_MODE, "@ENERGYSAVING"]                                      
 
 #RAC
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
@@ -41,9 +41,9 @@ SUPPORT_VANE_VSTEP = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_DIRECTION_STEP_UP_DOWN
 SUPPORT_JET_COOL = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_COOL_JET_W"]
 SUPPORT_JET_HEAT = [SUPPORT_RAC_SUBMODE, "@AC_MAIN_WIND_MODE_HEAT_JET_W"]
 
-SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]                                          ####
-SUPPORT_AUTODRY_RAC = [SUPPORT_RAC_MODE, "@AUTODRY"]                                            ####
-SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]                                     ####
+SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]                                           
+SUPPORT_AUTODRY_RAC = [SUPPORT_RAC_MODE, "@AUTODRY"]                                             
+SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]                                      
 
 
 CTRL_BASIC = ["Control", "basicCtrl"]
@@ -78,11 +78,15 @@ STATE_MODE_AIRCLEAN = ["AirClean", "airState.wMode.airClean"]
 STATE_MODE_JET = ["Jet", "airState.wMode.jet"]
 STATE_LIGHTING_DISPLAY = ["DisplayControl", "airState.lightingState.displayControl"]
 
-STATE_MODE_ICEVALLEY = ["IceValley","airState.wMode.iceValley"]                  ####
-STATE_MODE_SMARTCARE = ["SmartCare","airState.wMode.smartCare"]                  ####
-STATE_MODE_LONGPOWER = ["FlowLongPower","airState.wMode.flowLongPower"]          ####
-STATE_MODE_POWERSAVE = ["PowerSave","airState.powerSave.basic"]                  ####
-STATE_MODE_AUTODRY = ["AutoDry","airState.miscFuncState.autoDry"]                ####
+STATE_MODE_ICEVALLEY = ["IceValley","airState.wMode.iceValley"]                   
+STATE_MODE_SMARTCARE = ["SmartCare","airState.wMode.smartCare"]                   
+STATE_MODE_LONGPOWER = ["FlowLongPower","airState.wMode.flowLongPower"]           
+STATE_MODE_POWERSAVE = ["PowerSave","airState.powerSave.basic"]                   
+STATE_MODE_AUTODRY = ["AutoDry","airState.miscFuncState.autoDry"]                 
+
+STATE_AIRPOLUTION_PM1 = ["SensorPM1","airState.quality.PM1"]
+STATE_AIRPOLUTION_PM2 = ["SensorPM2","airState.quality.PM2"]
+STATE_AIRPOLUTION_PM10 = ["SensorPM10","airState.quality.PM10"]
 
 FILTER_TYPES = [
     [
@@ -110,11 +114,11 @@ CMD_STATE_MODE_AIRCLEAN = [CTRL_BASIC, "Set", STATE_MODE_AIRCLEAN]
 CMD_STATE_MODE_JET = [CTRL_BASIC, "Set", STATE_MODE_JET]
 CMD_STATE_LIGHTING_DISPLAY = [CTRL_BASIC, "Set", STATE_LIGHTING_DISPLAY]
 
-CMD_STATE_MODE_ICEVALLEY = [CTRL_BASIC, "Set", STATE_MODE_ICEVALLEY]          ####
-CMD_STATE_MODE_SMARTCARE = [CTRL_BASIC, "Set", STATE_MODE_SMARTCARE]          ####
-CMD_STATE_MODE_LONGPOWER = [CTRL_BASIC, "Set", STATE_MODE_LONGPOWER]          ####
-CMD_STATE_MODE_POWERSAVE = [CTRL_BASIC, "Set", STATE_MODE_POWERSAVE]          ####
-CMD_STATE_MODE_AUTODRY = [CTRL_BASIC, "Set", STATE_MODE_AUTODRY]              ####
+CMD_STATE_MODE_ICEVALLEY = [CTRL_BASIC, "Set", STATE_MODE_ICEVALLEY]           
+CMD_STATE_MODE_SMARTCARE = [CTRL_BASIC, "Set", STATE_MODE_SMARTCARE]           
+CMD_STATE_MODE_LONGPOWER = [CTRL_BASIC, "Set", STATE_MODE_LONGPOWER]           
+CMD_STATE_MODE_POWERSAVE = [CTRL_BASIC, "Set", STATE_MODE_POWERSAVE]           
+CMD_STATE_MODE_AUTODRY = [CTRL_BASIC, "Set", STATE_MODE_AUTODRY]               
 
 # AWHP Section
 STATE_WATER_IN_TEMP = ["WaterInTempCur", "airState.tempState.inWaterCurrent"]
@@ -134,17 +138,17 @@ CMD_STATE_MODE_AWHP_SILENT = [CTRL_BASIC, "Set", STATE_MODE_AWHP_SILENT]
 
 CMD_ENABLE_EVENT_V2 = ["allEventEnable", "Set", "airState.mon.timeout"]
 
-# STATE_AUTODRY_MODE_V2 = "airState.miscFuncState.autoDry" ###
-# STATE_AIRCLEAN_MODE_V2 = "airState.wMode.airClean" ###
+# STATE_AUTODRY_MODE_V2 = "airState.miscFuncState.autoDry"  
+# STATE_AIRCLEAN_MODE_V2 = "airState.wMode.airClean"  
 # STATE_FILTER_MAX_TIME_V2 = "airState.filterMngStates.maxTime"
 # STATE_FILTER_REMAIN_TIME_V2 = "airState.filterMngStates.useTime"
 
-DEFAULT_MIN_TEMP = 18 ###16
+DEFAULT_MIN_TEMP = 16
 DEFAULT_MAX_TEMP = 30
 AWHP_MIN_TEMP = 5
 AWHP_MAX_TEMP = 80
 
-TEMP_STEP_WHOLE = 0.5 ###1.0
+TEMP_STEP_WHOLE = 0.5 #1.0
 TEMP_STEP_HALF = 0.5
 
 ADD_FEAT_POLL_INTERVAL = 300  # 5 minutes
@@ -196,7 +200,6 @@ class ACMode(Enum):
     ENERGY_SAVER = "@AC_MAIN_OPERATION_MODE_ENERGY_SAVER_W"
     ENERGYSAVING = "@AC_MAIN_OPERATION_MODE_ENERGYSAVING_W"
 
-
 class ACFanSpeedRAC(Enum):
     """The fan speed for an AC/HVAC device."""
     
@@ -235,15 +238,14 @@ class ACVStepMode(Enum):
     All is 100.
     """
 
-    기본 = "@OFF" ###
-    위치1 = "@1" ###
-    위치2 = "@2" ###
-    위치3 = "@3" ###
-    위치4 = "@4" ###
-    위치5 = "@5" ###
-    위치6 = "@6" ###
-    회전 = "@100" ###
-
+    기본 = "@OFF"  
+    위치1 = "@1"  
+    위치2 = "@2"  
+    위치3 = "@3"  
+    위치4 = "@4"  
+    위치5 = "@5"  
+    위치6 = "@6"  
+    회전 = "@100"  
 
 class ACHStepMode(Enum):
     """
@@ -255,29 +257,29 @@ class ACHStepMode(Enum):
     All is 100.
     """
 
-    기본 = "@OFF" ###
-    위치1 = "@1" ###
-    위치2 = "@2" ###
-    위치3 = "@3" ###
-    위치4 = "@4" ###
-    위치5 = "@5" ###
-    좌반 = "@13" ###
-    우반 = "@35" ###
-    회전 = "@100" ###
+    기본 = "@OFF"  
+    위치1 = "@1"  
+    위치2 = "@2"  
+    위치3 = "@3"  
+    위치4 = "@4"  
+    위치5 = "@5"  
+    좌반 = "@13"  
+    우반 = "@35"  
+    회전 = "@100"  
 
-class ACVSwingMode(Enum):                      ####
+class ACVSwingMode(Enum):                       
     """The swing mode for an AC/HVAC device."""
 
-    정지 = "@OFF"     ####
-    회전 = "@ON"      ####
+    정지 = "@OFF"      
+    회전 = "@ON"       
 
-class ACHSwingMode(Enum):  ####
+class ACHSwingMode(Enum):   
     """The swing mode for an AC/HVAC device."""
 
-    정지 = "@OFF"         ####
-    좌측회전 = "@LEFT_ON"     ####
-    우측회전 = "@RIGHT_ON"    ####
-    회전 = "@ALL_ON"      ####
+    정지 = "@OFF"          
+    좌측회전 = "@LEFT_ON"      
+    우측회전 = "@RIGHT_ON"     
+    회전 = "@ALL_ON"       
  
 class JetMode(Enum):
     """Possible JET modes."""
@@ -318,11 +320,11 @@ class AirConditionerDevice(Device):
         self._is_water_heater_supported = None
         self._is_mode_airclean_supported = None
         
-        self._is_mode_icevalley_supported = None         ####
-        self._is_mode_smartcare_supported = None         ####
-        self._is_mode_longpower_supported = None         ####
-        self._is_mode_powersave_supported = None         ####
-        self._is_mode_autodry_supported = None           ####
+        self._is_mode_icevalley_supported = None          
+        self._is_mode_smartcare_supported = None          
+        self._is_mode_longpower_supported = None          
+        self._is_mode_powersave_supported = None          
+        self._is_mode_autodry_supported = None            
         
         self._is_duct_zones_supported = None
         self._supported_operation = None
@@ -330,8 +332,8 @@ class AirConditionerDevice(Device):
         self._supported_fan_speeds = None
         self._supported_horizontal_steps = None
         self._supported_vertical_steps = None
-        self._supported_horizontal_swings = None ###
-        self._supported_vertical_swings = None ###
+        self._supported_horizontal_swings = None  
+        self._supported_vertical_swings = None  
         self._supported_mode_jet = None
         self._temperature_range = None
         self._hot_water_temperature_range = None
@@ -671,7 +673,7 @@ class AirConditionerDevice(Device):
         return self._supported_vertical_steps
    
     @property
-    def horizontal_swing_modes(self): ###
+    def horizontal_swing_modes(self):  
         """Return a list of available horizontal swing modes."""
         if self._supported_horizontal_swings is None:
             self._supported_horizontal_swings = []
@@ -691,7 +693,7 @@ class AirConditionerDevice(Device):
         return self._supported_horizontal_swings
 
     @property
-    def vertical_swing_modes(self): ###
+    def vertical_swing_modes(self):  
         """Return a list of available vertical swing modes."""
         if self._supported_vertical_swings is None:
             self._supported_vertical_swings = []
@@ -746,46 +748,46 @@ class AirConditionerDevice(Device):
                 self._is_mode_airclean_supported = self._is_mode_supported(SUPPORT_AIRCLEAN_PAC)
         return self._is_mode_airclean_supported
         
-    @property                                                                               ####
-    def is_mode_icevalley_supported(self):                                                       ####
-        """Return if Icevalley is supported."""                                             ####
-        if self._is_mode_icevalley_supported is None:                                            ####
-            self._is_mode_icevalley_supported = self._is_mode_supported(SUPPORT_ICEVALLEY)       ####
-        return self._is_mode_icevalley_supported                                                 ####
+    @property                                                                                
+    def is_mode_icevalley_supported(self):                                                        
+        """Return if Icevalley is supported."""                                              
+        if self._is_mode_icevalley_supported is None:                                             
+            self._is_mode_icevalley_supported = self._is_mode_supported(SUPPORT_ICEVALLEY)        
+        return self._is_mode_icevalley_supported                                                  
 
-    @property                                                                               ####
-    def is_mode_smartcare_supported(self):                                                       ####
-        """Return if Smartcare is supported."""                                             ####
-        if self._is_mode_smartcare_supported is None:                                            ####
-            self._is_mode_smartcare_supported = self._is_mode_supported(SUPPORT_SMARTCARE)       ####
-        return self._is_mode_smartcare_supported                                                 ####
+    @property                                                                                
+    def is_mode_smartcare_supported(self):                                                        
+        """Return if Smartcare is supported."""                                              
+        if self._is_mode_smartcare_supported is None:                                             
+            self._is_mode_smartcare_supported = self._is_mode_supported(SUPPORT_SMARTCARE)        
+        return self._is_mode_smartcare_supported                                                  
 
-    @property                                                                               ####
-    def is_mode_longpower_supported(self):                                                       ####
-        """Return if Longpower is supported."""                                             ####
-        if self._is_mode_longpower_supported is None:                                            ####
-            self._is_mode_longpower_supported = self._is_mode_supported(SUPPORT_LONGPOWER)       ####
-        return self._is_mode_longpower_supported                                                 ####
+    @property                                                                                
+    def is_mode_longpower_supported(self):                                                        
+        """Return if Longpower is supported."""                                              
+        if self._is_mode_longpower_supported is None:                                             
+            self._is_mode_longpower_supported = self._is_mode_supported(SUPPORT_LONGPOWER)        
+        return self._is_mode_longpower_supported                                                  
 
-    @property                                                                               ####
-    def is_mode_powersave_supported(self):                                                       ####
-        """Return if Smartcare is supported."""                                             ####
-        if self._is_mode_powersave_supported is None:                                            ####
-            if self.model_info.model_type == "RAC": ####
-               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_RAC)       ####
-            elif self.model_info.model_type == "PAC": ####
-               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)       ####
-        return self._is_mode_powersave_supported                                                 ####
+    @property                                                                                
+    def is_mode_powersave_supported(self):                                                        
+        """Return if Smartcare is supported."""                                              
+        if self._is_mode_powersave_supported is None:                                             
+            if self.model_info.model_type == "RAC":  
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_RAC)        
+            elif self.model_info.model_type == "PAC":  
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)        
+        return self._is_mode_powersave_supported                                                  
 
-    @property                                                                               ####
-    def is_mode_autodry_supported(self):                                                         ####
-        """Return if Smartcare is supported."""                                             ####
-        if self._is_mode_autodry_supported is None:                                              ####
-            if self.model_info.model_type == "RAC": ####
-                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)           ####
-            elif self.model_info.model_type == "PAC": ####
-                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)           ####
-        return self._is_mode_autodry_supported                                                   ####
+    @property                                                                                
+    def is_mode_autodry_supported(self):                                                          
+        """Return if Smartcare is supported."""                                              
+        if self._is_mode_autodry_supported is None:                                               
+            if self.model_info.model_type == "RAC":  
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)            
+            elif self.model_info.model_type == "PAC":  
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)            
+        return self._is_mode_autodry_supported                                                    
 
     @property
     def supported_mode_jet(self):
@@ -878,8 +880,8 @@ class AirConditionerDevice(Device):
         step_mode = self.model_info.enum_value(keys[2], ACHStepMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=step_mode)
 
-    async def set_horizontal_swing_mode(self, mode): ###
-        """Set the horizontal swing to a value from the `ACHSwingMode` enum.""" ###
+    async def set_horizontal_swing_mode(self, mode):  
+        """Set the horizontal swing to a value from the `ACHSwingMode` enum."""  
         if mode not in self.horizontal_swing_modes:
             raise ValueError(f"Invalid horizontal swing mode: {mode}")
         keys = self._get_cmd_keys(CMD_STATE_WDIR_HSWING)
@@ -894,8 +896,8 @@ class AirConditionerDevice(Device):
         step_mode = self.model_info.enum_value(keys[2], ACVStepMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=step_mode)
 
-    async def set_vertical_swing_mode(self, mode): ###
-        """Set the vertical swing to a value from the `ACVSwingMode` enum.""" ###
+    async def set_vertical_swing_mode(self, mode):  
+        """Set the vertical swing to a value from the `ACVSwingMode` enum."""  
         if mode not in self.vertical_swing_modes:
             raise ValueError(f"Invalid vertical swing mode: {mode}")
         keys = self._get_cmd_keys(CMD_STATE_WDIR_VSWING)
@@ -927,55 +929,55 @@ class AirConditionerDevice(Device):
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
         
-    async def set_mode_icevalley(self, status: bool):                                                            ####
-        """Set the Icevalley or off."""                                                                     ####
-        if not self.is_mode_icevalley_supported:                                                                 ####
-            raise ValueError("Icevalley mode not supported")                                                     ####
-                                                                                                            ####
-        keys = self._get_cmd_keys(CMD_STATE_MODE_ICEVALLEY)                                                      ####
-        mode_key = MODE_ON if status else MODE_OFF                                                          ####
-        mode = self.model_info.enum_value(keys[2], mode_key)                                                ####
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                           ####
+    async def set_mode_icevalley(self, status: bool):                                                             
+        """Set the Icevalley or off."""                                                                      
+        if not self.is_mode_icevalley_supported:                                                                  
+            raise ValueError("Icevalley mode not supported")                                                      
+                                                                                                             
+        keys = self._get_cmd_keys(CMD_STATE_MODE_ICEVALLEY)                                                       
+        mode_key = MODE_ON if status else MODE_OFF                                                           
+        mode = self.model_info.enum_value(keys[2], mode_key)                                                 
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
 
-    async def set_mode_smartcare(self, status: bool):                                                            ####
-        """Set the Smartcare or off."""                                                                     ####
-        if not self.is_mode_smartcare_supported:                                                                 ####
-            raise ValueError("Smartcare mode not supported")                                                     ####
-                                                                                                            ####
-        keys = self._get_cmd_keys(CMD_STATE_MODE_SMARTCARE)                                                      ####
-        mode_key = MODE_ON if status else MODE_OFF                                                          ####
-        mode = self.model_info.enum_value(keys[2], mode_key)                                                ####
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                           ####
+    async def set_mode_smartcare(self, status: bool):                                                             
+        """Set the Smartcare or off."""                                                                      
+        if not self.is_mode_smartcare_supported:                                                                  
+            raise ValueError("Smartcare mode not supported")                                                      
+                                                                                                             
+        keys = self._get_cmd_keys(CMD_STATE_MODE_SMARTCARE)                                                       
+        mode_key = MODE_ON if status else MODE_OFF                                                           
+        mode = self.model_info.enum_value(keys[2], mode_key)                                                 
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
 
-    async def set_mode_longpower(self, status: bool):                                                            ####
-        """Set the Longpower or off."""                                                                     ####
-        if not self.is_mode_longpower_supported:                                                                 ####
-            raise ValueError("Longpower mode not supported")                                                     ####
-                                                                                                            ####
-        keys = self._get_cmd_keys(CMD_STATE_MODE_LONGPOWER)                                                  ####
-        mode_key = MODE_ON if status else MODE_OFF                                      ####
-        mode = self.model_info.enum_value(keys[2], mode_key)                                                ####
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                           ####
+    async def set_mode_longpower(self, status: bool):                                                             
+        """Set the Longpower or off."""                                                                      
+        if not self.is_mode_longpower_supported:                                                                  
+            raise ValueError("Longpower mode not supported")                                                      
+                                                                                                             
+        keys = self._get_cmd_keys(CMD_STATE_MODE_LONGPOWER)                                                   
+        mode_key = MODE_ON if status else MODE_OFF                                       
+        mode = self.model_info.enum_value(keys[2], mode_key)                                                 
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
 
-    async def set_mode_powersave(self, status: bool):                                                            ####
-        """Set the Powersave or off."""                                                                     ####
-        if not self.is_mode_powersave_supported:                                                                 ####
-            raise ValueError("Powersave not supported")                                                     ####
-                                                                                                            ####
-        keys = self._get_cmd_keys(CMD_STATE_MODE_POWERSAVE)                                                      ####
-        mode_key = MODE_ON if status else MODE_OFF                                                          ####
-        mode = self.model_info.enum_value(keys[2], mode_key)                                                ####
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                           ####
+    async def set_mode_powersave(self, status: bool):                                                             
+        """Set the Powersave or off."""                                                                      
+        if not self.is_mode_powersave_supported:                                                                  
+            raise ValueError("Powersave not supported")                                                      
+                                                                                                             
+        keys = self._get_cmd_keys(CMD_STATE_MODE_POWERSAVE)                                                       
+        mode_key = MODE_ON if status else MODE_OFF                                                           
+        mode = self.model_info.enum_value(keys[2], mode_key)                                                 
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
 
-    async def set_mode_autodry(self, status: bool):                                                              ####
-        """Set the Autodry or off."""                                                                       ####
-        if not self.is_mode_autodry_supported:                                                                   ####
-            raise ValueError("Autodry not supported")                                                       ####
-                                                                                                            ####
-        keys = self._get_cmd_keys(CMD_STATE_MODE_AUTODRY)                                                        ####
-        mode_key = MODE_ON if status else MODE_OFF                                                          ####
-        mode = self.model_info.enum_value(keys[2], mode_key)                                                ####
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                           ####
+    async def set_mode_autodry(self, status: bool):                                                               
+        """Set the Autodry or off."""                                                                        
+        if not self.is_mode_autodry_supported:                                                                    
+            raise ValueError("Autodry not supported")                                                        
+                                                                                                             
+        keys = self._get_cmd_keys(CMD_STATE_MODE_AUTODRY)                                                         
+        mode_key = MODE_ON if status else MODE_OFF                                                           
+        mode = self.model_info.enum_value(keys[2], mode_key)                                                 
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
         
     async def set_mode_jet(self, status: bool):
         """Set the Jet mode on or off."""
@@ -1270,7 +1272,7 @@ class AirConditionerStatus(DeviceStatus):
             return None
     
     @property
-    def horizontal_swing_mode(self): ###
+    def horizontal_swing_mode(self):  
         """Return current horizontal swing mode."""
         key = self._get_state_key(STATE_WDIR_HSWING)
         if (value := self.lookup_enum(key, True)) is None:
@@ -1289,7 +1291,7 @@ class AirConditionerStatus(DeviceStatus):
     #    return value == MODE_ON
 
     @property
-    def vertical_swing_mode(self): ###
+    def vertical_swing_mode(self):  
         """Return current vertical swing mode."""
         key = self._get_state_key(STATE_WDIR_VSWING)
         if (value := self.lookup_enum(key, True)) is None:
@@ -1364,7 +1366,31 @@ class AirConditionerStatus(DeviceStatus):
         if value >= 100:
             value = value / 10
         return self._update_feature(AirConditionerFeatures.HUMIDITY, value, False)
+    
+    @property
+    def PM1(self):
+        """Return current PM1.0."""
+        key = self._get_state_key(STATE_AIRPOLUTION_PM1)
+        if (value := self.to_int_or_none(self.lookup_range(key))) is None:
+            return None
+        return self._update_feature(AirConditionerFeatures.PM1, value, False)
 
+    @property
+    def PM2(self):
+        """Return current humidity."""
+        key = self._get_state_key(STATE_AIRPOLUTION_PM2)
+        if (value := self.to_int_or_none(self.lookup_range(key))) is None:
+            return None
+        return self._update_feature(AirConditionerFeatures.PM2, value, False)
+    
+    @property
+    def PM10(self):
+        """Return current humidity."""
+        key = self._get_state_key(STATE_AIRPOLUTION_PM10)
+        if (value := self.to_int_or_none(self.lookup_range(key))) is None:
+            return None
+        return self._update_feature(AirConditionerFeatures.PM10, value, False)
+    
     @property
     def mode_airclean(self):
         """Return AirClean Mode status."""
@@ -1382,60 +1408,60 @@ class AirConditionerStatus(DeviceStatus):
         status = value == MODE_AIRCLEAN_ON
         return self._update_feature(AirConditionerFeatures.MODE_AIRCLEAN, status, False)
 
-    @property                                                                                       ####
-    def mode_icevalley(self):                                                                            ####
-        """Return Icevalley status."""                                                              ####
-        if not self._device.is_mode_icevalley_supported:                                                 ####
-            return None                                                                             ####
-        key = self._get_state_key(STATE_MODE_ICEVALLEY)                                                  ####
-        if (value := self.lookup_enum(key, True)) is None:                                          ####
-            return None                                                                             ####
-        status = value == MODE_ON                                                                   ####
-        return self._update_feature(AirConditionerFeatures.MODE_ICEVALLEY, status, False)                ####
+    @property                                                                                        
+    def mode_icevalley(self):                                                                             
+        """Return Icevalley status."""                                                               
+        if not self._device.is_mode_icevalley_supported:                                                  
+            return None                                                                              
+        key = self._get_state_key(STATE_MODE_ICEVALLEY)                                                   
+        if (value := self.lookup_enum(key, True)) is None:                                           
+            return None                                                                              
+        status = value == MODE_ON                                                                    
+        return self._update_feature(AirConditionerFeatures.MODE_ICEVALLEY, status, False)                 
 
-    @property                                                                                       ####
-    def mode_smartcare(self):                                                                            ####
-        """Return Smartcare status."""                                                              ####
-        if not self._device.is_mode_smartcare_supported:                                                 ####
-            return None                                                                             ####
-        key = self._get_state_key(STATE_MODE_SMARTCARE)                                                  ####
-        if (value := self.lookup_enum(key, True)) is None:                                          ####
-            return None                                                                             ####
-        status = value == MODE_ON                                                                   ####
-        return self._update_feature(AirConditionerFeatures.MODE_SMARTCARE, status, False)                ####
+    @property                                                                                        
+    def mode_smartcare(self):                                                                             
+        """Return Smartcare status."""                                                               
+        if not self._device.is_mode_smartcare_supported:                                                  
+            return None                                                                              
+        key = self._get_state_key(STATE_MODE_SMARTCARE)                                                   
+        if (value := self.lookup_enum(key, True)) is None:                                           
+            return None                                                                              
+        status = value == MODE_ON                                                                    
+        return self._update_feature(AirConditionerFeatures.MODE_SMARTCARE, status, False)                 
 
-    @property                                                                                       ####
-    def mode_longpower(self):                                                                            ####
-        """Return Longpower status."""                                                              ####
-        if not self._device.is_mode_longpower_supported:                                                 ####
-            return None                                                                             ####
-        key = self._get_state_key(STATE_MODE_LONGPOWER)                                                  ####
-        if (value := self.lookup_enum(key, True)) is None:                                          ####
-            return None                                                                             ####
-        status = value == MODE_ON                                                                   ####
-        return self._update_feature(AirConditionerFeatures.MODE_LONGPOWER, status, False)                ####
+    @property                                                                                        
+    def mode_longpower(self):                                                                             
+        """Return Longpower status."""                                                               
+        if not self._device.is_mode_longpower_supported:                                                  
+            return None                                                                              
+        key = self._get_state_key(STATE_MODE_LONGPOWER)                                                   
+        if (value := self.lookup_enum(key, True)) is None:                                           
+            return None                                                                              
+        status = value == MODE_ON                                                                    
+        return self._update_feature(AirConditionerFeatures.MODE_LONGPOWER, status, False)                 
 
-    @property                                                                                       ####
-    def mode_powersave(self):                                                                            ####
-        """Return Powersave status."""                                                              ####
-        if not self._device.is_mode_powersave_supported:                                                 ####
-            return None                                                                             ####
-        key = self._get_state_key(STATE_MODE_POWERSAVE)                                                  ####
-        if (value := self.lookup_enum(key, True)) is None:                                          ####
-            return None                                                                             ####
-        status = value == MODE_ON                                                                   ####
-        return self._update_feature(AirConditionerFeatures.MODE_POWERSAVE, status, False)                ####
+    @property                                                                                        
+    def mode_powersave(self):                                                                             
+        """Return Powersave status."""                                                               
+        if not self._device.is_mode_powersave_supported:                                                  
+            return None                                                                              
+        key = self._get_state_key(STATE_MODE_POWERSAVE)                                                   
+        if (value := self.lookup_enum(key, True)) is None:                                           
+            return None                                                                              
+        status = value == MODE_ON                                                                    
+        return self._update_feature(AirConditionerFeatures.MODE_POWERSAVE, status, False)                 
 
-    @property                                                                                       ####
-    def mode_autodry(self):                                                                              ####
-        """Return Autodry status."""                                                                ####
-        if not self._device.is_mode_autodry_supported:                                                   ####
-            return None                                                                             ####
-        key = self._get_state_key(STATE_MODE_AUTODRY)                                                    ####
-        if (value := self.lookup_enum(key, True)) is None:                                          ####
-            return None                                                                             ####
-        status = value == MODE_ON                                                                   ####
-        return self._update_feature(AirConditionerFeatures.MODE_AUTODRY, status, False)                  ####
+    @property                                                                                        
+    def mode_autodry(self):                                                                               
+        """Return Autodry status."""                                                                 
+        if not self._device.is_mode_autodry_supported:                                                    
+            return None                                                                              
+        key = self._get_state_key(STATE_MODE_AUTODRY)                                                     
+        if (value := self.lookup_enum(key, True)) is None:                                           
+            return None                                                                              
+        status = value == MODE_ON                                                                    
+        return self._update_feature(AirConditionerFeatures.MODE_AUTODRY, status, False)                   
 
     @property
     def mode_jet(self):
@@ -1569,12 +1595,15 @@ class AirConditionerStatus(DeviceStatus):
             self.energy_current,
             self.filters_life,
             self.humidity,
+            self.PM1,
+            self.PM2,
+            self.PM10,
             self.mode_airclean,
-            self.mode_icevalley,                                     ####
-            self.mode_smartcare,                                     ####
-            self.mode_longpower,                                     ####
-            self.mode_powersave,                                     ####
-            self.mode_autodry,                                       ####
+            self.mode_icevalley,                                      
+            self.mode_smartcare,                                      
+            self.mode_longpower,                                      
+            self.mode_powersave,                                      
+            self.mode_autodry,                                        
             self.mode_jet,
             self.lighting_display,
             self.water_in_current_temp,
