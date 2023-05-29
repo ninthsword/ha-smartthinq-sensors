@@ -13,15 +13,15 @@ from ..device_info import DeviceInfo
 
 SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
 SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
-SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"]                              ###
-SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"]                            ###
+SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"]
+SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"]
 SUPPORT_DUCT_ZONE = ["SupportDuctZoneType", "support.airState.ductZone.type"]
 
-SUPPORT_VANE_HSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_LEFT_RIGHT_W"]            ###
-SUPPORT_VANE_VSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_UP_DOWN_W"]               ###
-SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]                   ####
-SUPPORT_SMARTCARE = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_SMARTCARE_W"]                   ####
-SUPPORT_LONGPOWER = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_LONGPOWER_W"]                   ####
+SUPPORT_VANE_HSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_LEFT_RIGHT_W"]
+SUPPORT_VANE_VSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_UP_DOWN_W"]
+SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]
+SUPPORT_SMARTCARE = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_SMARTCARE_W"]
+SUPPORT_LONGPOWER = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_LONGPOWER_W"]
 
 #PAC
 SUPPORT_PAC_MODE = ["SupportPACMode", "support.pacMode"]
@@ -199,16 +199,15 @@ class ACMode(Enum):
 
 class ACFanSpeed(Enum):
     """The fan speed for an AC/HVAC device."""
-
-    #SLOW = "@AC_MAIN_WIND_STRENGTH_SLOW_W"
-    #SLOW_LOW = "@AC_MAIN_WIND_STRENGTH_SLOW_LOW_W"
-    약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W" ###LOW
-    #LOW_MID = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
-    중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
-    #MID_HIGH = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
-    강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
-    #POWER = "@AC_MAIN_WIND_STRENGTH_POWER_W"
-    #AUTO = "@AC_MAIN_WIND_STRENGTH_AUTO_W"
+    if self._device.model_info.model_type == "RAC":
+        약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
+        중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
+        강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
+    elif self._device.model_info.model_type == "PAC":
+        약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
+        중풍 = "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
+        강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
+    
     자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
     
     우측약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
