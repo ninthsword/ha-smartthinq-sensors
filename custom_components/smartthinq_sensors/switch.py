@@ -103,7 +103,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ),
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.MODE_JET,
-        name="Jet mode",
+        name="파워",
         icon="mdi:turbine",
         turn_off_fn=lambda x: x.device.set_mode_jet(False),
         turn_on_fn=lambda x: x.device.set_mode_jet(True),
