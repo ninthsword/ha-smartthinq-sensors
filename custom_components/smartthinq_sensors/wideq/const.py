@@ -36,7 +36,7 @@ class AirConditionerFeatures(StrEnum):
     HUMIDITY = "humidity"
     PM1 = "PM1"
     PM2 = "PM2"
-    PM3 = "PM10"
+    PM10 = "PM10"
     FILTER_MAIN_LIFE = "filter_main_life"
     FILTER_MAIN_MAX = "filter_main_max"
     FILTER_MAIN_USE = "filter_main_use"
