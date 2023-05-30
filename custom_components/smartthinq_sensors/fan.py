@@ -35,24 +35,24 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ fan setup...")
 
     @callback
-    def _async_discover_device(lge_devices_custom: dict) -> None:
+    def _async_discover_device(lge_devices: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices_custom:
+        if not lge_devices:
             return
 
         lge_fan = []
 
         # Fan devices
         lge_fan.extend(
-            [LGEFan(lge_device) for lge_device in lge_devices_custom.get(DeviceType.FAN, [])]
+            [LGEFan(lge_device) for lge_device in lge_devices.get(DeviceType.FAN, [])]
         )
 
         # Air Purifier devices
         lge_fan.extend(
             [
                 LGEFan(lge_device, icon="mdi:air-purifier")
-                for lge_device in lge_devices_custom.get(DeviceType.AIR_PURIFIER, [])
+                for lge_device in lge_devices.get(DeviceType.AIR_PURIFIER, [])
             ]
         )
 
