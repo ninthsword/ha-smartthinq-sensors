@@ -84,6 +84,7 @@ class DehumidifierFeatures(StrEnum):
     HUMIDITY = "humidity"
     TARGET_HUMIDITY = "target_humidity"
     WATER_TANK_FULL = "water_tank_full"
+    MODE_AIRREMOVAL = "mode_airremoval"
 
 
 class RangeFeatures(StrEnum):
