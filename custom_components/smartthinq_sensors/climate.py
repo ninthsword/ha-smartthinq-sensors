@@ -107,10 +107,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ climate setup...")
 
     @callback
-    def _async_discover_device(lge_devices_custom: dict) -> None:
+    def _async_discover_device(lge_devices: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices_custom:
+        if not lge_devices:
             return
 
         lge_climates = []
@@ -119,7 +119,7 @@ async def async_setup_entry(
         lge_climates.extend(
             [
                 LGEACClimate(lge_device)
-                for lge_device in lge_devices_custom.get(DeviceType.AC, [])
+                for lge_device in lge_devices.get(DeviceType.AC, [])
             ]
         )
 
@@ -128,7 +128,7 @@ async def async_setup_entry(
             [
                 LGERefrigeratorClimate(lge_device, refrigerator_desc)
                 for refrigerator_desc in REFRIGERATOR_CLIMATE
-                for lge_device in lge_devices_custom.get(DeviceType.REFRIGERATOR, [])
+                for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
             ]
         )
 
