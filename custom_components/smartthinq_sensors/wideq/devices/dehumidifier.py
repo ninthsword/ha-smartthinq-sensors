@@ -49,6 +49,8 @@ DEFAULT_STEP_HUM = 5
 
 ADD_FEAT_POLL_INTERVAL = 300  # 5 minutes
 
+MODE_OFF = "@AP_OFF_W"
+MODE_ON = "@AP_ON_W"
 
 class DHumOp(Enum):
     """Whether a device is on or off."""
@@ -108,7 +110,14 @@ class DeHumidifierDevice(Device):
             self._humidity_range = [min_hum, max_hum]
 
         return self._humidity_range
-
+    
+    def _is_mode_supported(self, key):
+        """Check if a specific mode for support key is supported."""
+        if not isinstance(key, list):
+            return False
+        supp_key = self._get_state_key(key[0])
+        return self.model_info.enum_value(supp_key, key[1]) is not None    
+    
     @property
     def op_modes(self):
         """Return a list of available operation modes."""
@@ -138,13 +147,6 @@ class DeHumidifierDevice(Device):
                 DHumFanSpeed(o).name for o in mapping.values() if o in mode_list
             ]
         return self._supported_fan_speeds
-    
-    def _is_mode_supported(self, key):
-        """Check if a specific mode for support key is supported."""
-        if not isinstance(key, list):
-            return False
-        supp_key = self._get_state_key(key[0])
-        return self.model_info.enum_value(supp_key, key[1]) is not None    
     
     @property
     def is_mode_airremoval_supported(self):
@@ -210,8 +212,6 @@ class DeHumidifierDevice(Device):
             raise ValueError("Airremoval mode not supported")
 
         keys = self._get_cmd_keys(CMD_STATE_MODE_AIRREMOVAL)
-        MODE_OFF = "@AP_OFF_W"
-        MODE_ON = "@AP_ON_W"
         mode_key = MODE_ON if status else MODE_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
@@ -359,8 +359,6 @@ class DeHumidifierStatus(DeviceStatus):
         key = self._get_state_key(STATE_MODE_AIRREMOVAL)
         if (value := self.lookup_enum(key, True)) is None:
             return None
-        MODE_OFF = "@AP_OFF_W"
-        MODE_ON = "@AP_ON_W"
         status = value == MODE_ON
         return self._update_feature(DehumidifierFeatures.MODE_AIRREMOVAL, status, False)
    
