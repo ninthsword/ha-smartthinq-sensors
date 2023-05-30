@@ -13,7 +13,7 @@ CTRL_BASIC = ["Control", "basicCtrl"]
 STATE_POWER_V1 = "InOutInstantPower"
 
 SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
-SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
+SUPPORT_WIND_STRENGTH = ["WindStrength", "airState.windStrength"] #SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
 SUPPORT_AIR_POLUTION = ["SupportAirPolution", "support.airPolution"]
 
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
@@ -76,6 +76,7 @@ class DHumFanSpeed(Enum):
     약풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_LOW_W"
     중풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_MID_W"
     강풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_HIGH_W"
+    파워 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_POWER_W"
 
 
 class DeHumidifierDevice(Device):
