@@ -31,6 +31,7 @@ from .wideq import (
     AirConditionerFeatures,
     DeviceType,
     RefrigeratorFeatures,
+    DehumidifierFeatures,
 )
 
 # general sensor attributes
