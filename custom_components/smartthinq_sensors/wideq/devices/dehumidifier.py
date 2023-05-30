@@ -32,7 +32,7 @@ STATE_TANK_LIGHT = ["WatertankLight", "airState.miscFuncState.watertankLight"]
 
 STATE_POWER = [STATE_POWER_V1, "airState.energy.onCurrent"]
 
-STATE_MODE_AIRREMOVAL = ["AirRemoval", "airState.wMode.AirRemoval"]
+STATE_MODE_AIRREMOVAL = ["AirRemoval", "airState.miscFuncState.AirRemoval"]
 
 CMD_STATE_OPERATION = [CTRL_BASIC, "Set", STATE_OPERATION]
 CMD_STATE_OP_MODE = [CTRL_BASIC, "Set", STATE_OPERATION_MODE]
