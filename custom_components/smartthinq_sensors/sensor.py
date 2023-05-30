@@ -515,10 +515,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ sensors setup...")
 
     @callback
-    def _async_discover_device(lge_devices_custom: dict) -> None:
+    def _async_discover_device(lge_devices: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices_custom:
+        if not lge_devices:
             return
 
         lge_sensors = []
@@ -529,7 +529,7 @@ async def async_setup_entry(
                 LGEWashDeviceSensor(lge_device, sensor_desc)
                 for sensor_desc in WASH_DEV_SENSORS
                 for lge_device in get_multiple_devices_types(
-                    lge_devices_custom, WASH_DEVICE_TYPES
+                    lge_devices, WASH_DEVICE_TYPES
                 )
                 if _sensor_exist(lge_device, sensor_desc)
             ]
@@ -540,7 +540,7 @@ async def async_setup_entry(
             [
                 LGERefrigeratorSensor(lge_device, sensor_desc)
                 for sensor_desc in REFRIGERATOR_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.REFRIGERATOR, [])
+                for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -550,7 +550,7 @@ async def async_setup_entry(
             [
                 LGESensor(lge_device, sensor_desc, LGETempDevice(lge_device))
                 for sensor_desc in AC_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.AC, [])
+                for lge_device in lge_devices.get(DeviceType.AC, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -560,7 +560,7 @@ async def async_setup_entry(
             [
                 LGERangeSensor(lge_device, sensor_desc)
                 for sensor_desc in RANGE_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.RANGE, [])
+                for lge_device in lge_devices.get(DeviceType.RANGE, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -570,7 +570,7 @@ async def async_setup_entry(
             [
                 LGESensor(lge_device, sensor_desc)
                 for sensor_desc in AIR_PURIFIER_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.AIR_PURIFIER, [])
+                for lge_device in lge_devices.get(DeviceType.AIR_PURIFIER, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -580,7 +580,7 @@ async def async_setup_entry(
             [
                 LGESensor(lge_device, sensor_desc)
                 for sensor_desc in DEHUMIDIFIER_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.DEHUMIDIFIER, [])
+                for lge_device in lge_devices.get(DeviceType.DEHUMIDIFIER, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -590,7 +590,7 @@ async def async_setup_entry(
             [
                 LGESensor(lge_device, sensor_desc, LGETempDevice(lge_device))
                 for sensor_desc in WATER_HEATER_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.WATER_HEATER, [])
+                for lge_device in lge_devices.get(DeviceType.WATER_HEATER, [])
                 if _sensor_exist(lge_device, sensor_desc)
             ]
         )
