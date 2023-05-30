@@ -17,7 +17,7 @@ SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
 SUPPORT_AIR_POLUTION = ["SupportAirPolution", "support.airPolution"]
 
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
-SUPPORT_AIRREMOVAL = [SUPPORT_RAC_MODE, "@AP_AIRREMOVAL"]
+SUPPORT_MODE_AIRREMOVAL = [SUPPORT_RAC_MODE, "@AP_AIRREMOVAL"]
 
 STATE_OPERATION = ["Operation", "airState.operation"]
 STATE_OPERATION_MODE = ["OpMode", "airState.opMode"]
@@ -32,10 +32,14 @@ STATE_TANK_LIGHT = ["WatertankLight", "airState.miscFuncState.watertankLight"]
 
 STATE_POWER = [STATE_POWER_V1, "airState.energy.onCurrent"]
 
+STATE_MODE_AIRREMOVAL = ["AirRemoval", "airState.wMode.AirRemoval"]
+
 CMD_STATE_OPERATION = [CTRL_BASIC, "Set", STATE_OPERATION]
 CMD_STATE_OP_MODE = [CTRL_BASIC, "Set", STATE_OPERATION_MODE]
 CMD_STATE_TARGET_HUM = [CTRL_BASIC, "Set", STATE_TARGET_HUM]
 CMD_STATE_WIND_STRENGTH = [CTRL_BASIC, "Set", STATE_WIND_STRENGTH]
+
+CMD_STATE_MODE_AIRREMOVAL = [CTRL_BASIC, "Set", STATE_MODE_AIRREMOVAL]
 
 CMD_ENABLE_EVENT_V2 = ["allEventEnable", "Set", "airState.mon.timeout"]
 
@@ -79,6 +83,7 @@ class DeHumidifierDevice(Device):
         super().__init__(client, device_info, DeHumidifierStatus(self))
         self._supported_op_modes = None
         self._supported_fan_speeds = None
+        self._is_mode_airremoval_supported = None
         self._humidity_range = None
         self._humidity_step = DEFAULT_STEP_HUM
 
@@ -133,7 +138,21 @@ class DeHumidifierDevice(Device):
                 DHumFanSpeed(o).name for o in mapping.values() if o in mode_list
             ]
         return self._supported_fan_speeds
-
+    
+    def _is_mode_supported(self, key):
+        """Check if a specific mode for support key is supported."""
+        if not isinstance(key, list):
+            return False
+        supp_key = self._get_state_key(key[0])
+        return self.model_info.enum_value(supp_key, key[1]) is not None    
+    
+    @property
+    def is_mode_airremoval_supported(self):
+        """Return if AirClean mode is supported."""
+        if self._is_mode_airremoval_supported is None:
+            self._is_mode_airremoval_supported = self._is_mode_supported(SUPPORT_MODE_AIRREMOVAL)
+        return self._is_mode_airremoval_supported
+    
     @property
     def target_humidity_step(self):
         """Return target humidity step used."""
@@ -184,7 +203,19 @@ class DeHumidifierDevice(Device):
         keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
         speed_value = self.model_info.enum_value(keys[2], DHumFanSpeed[speed].value)
         await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
+    
+    async def set_mode_airremoval(self, status: bool):
+        """Set the Airremoval mode on or off."""
+        if not self.is_mode_airremoval_supported:
+            raise ValueError("Airremoval mode not supported")
 
+        keys = self._get_cmd_keys(CMD_STATE_MODE_AIRREMOVAL)
+        MODE_OFF = "@AP_OFF_W"
+        MODE_ON = "@AP_ON_W"
+        mode_key = MODE_ON if status else MODE_OFF
+        mode = self.model_info.enum_value(keys[2], mode_key)
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)
+    
     async def set_target_humidity(self, humidity):
         """Set the device's target humidity."""
 
@@ -319,7 +350,20 @@ class DeHumidifierStatus(DeviceStatus):
             return DHumFanSpeed(value).name
         except ValueError:
             return None
-
+    
+    @property
+    def mode_airremoval(self):
+        """Return AirRemoval Mode status."""
+        if not self._device.is_mode_airremoval_supported:
+            return None
+        key = self._get_state_key(STATE_MODE_AIRREMOVAL)
+        if (value := self.lookup_enum(key, True)) is None:
+            return None
+        MODE_OFF = "@AP_OFF_W"
+        MODE_ON = "@AP_ON_W"
+        status = value == MODE_ON
+        return self._update_feature(DehumidifierFeatures.MODE_AIRREMOVAL, status, False)
+   
     @property
     def current_humidity(self):
         """Return current humidity."""
@@ -352,4 +396,5 @@ class DeHumidifierStatus(DeviceStatus):
             self.current_humidity,
             self.target_humidity,
             self.water_tank_full,
+            self.mode_airremoval,
         ]
