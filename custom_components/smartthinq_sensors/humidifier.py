@@ -41,10 +41,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ humidifier setup...")
 
     @callback
-    def _async_discover_device(lge_devices_custom: dict) -> None:
+    def _async_discover_device(lge_devices: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices_custom:
+        if not lge_devices:
             return
 
         lge_humidifier = []
@@ -53,7 +53,7 @@ async def async_setup_entry(
         lge_humidifier.extend(
             [
                 LGEDeHumidifier(lge_device)
-                for lge_device in lge_devices_custom.get(DeviceType.DEHUMIDIFIER, [])
+                for lge_device in lge_devices.get(DeviceType.DEHUMIDIFIER, [])
             ]
         )
 
