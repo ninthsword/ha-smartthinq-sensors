@@ -49,7 +49,7 @@ PRESET_MODE_LOOKUP: dict[str, dict[str, HVACMode]] = {
 
 ATTR_SWING_HORIZONTAL = "swing_mode_horizontal"
 ATTR_SWING_VERTICAL = "swing_mode_vertical"
-SWING_PREFIX = ["상하_", "좌우_"]
+SWING_PREFIX = ["상하|", "좌우|"]
 
 _LOGGER = logging.getLogger(__name__)
 
