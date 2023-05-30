@@ -172,8 +172,9 @@ DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         key=DehumidifierFeatures.MODE_AIRREMOVAL,
         name="공기제균",
         icon="mdi:air-filter",                               
-        turn_off_fn=lambda x: x.device.set_mode_airremoval(False),           
-        turn_on_fn=lambda x: x.device.set_mode_airremoval(True),     
+        turn_off_fn=lambda x: x.device.set_mode_airremoval(False),
+        turn_on_fn=lambda x: x.device.set_mode_airremoval(True),
+        available_fn=lambda x: x.is_power_on or x.device.stand_by,
     ),
 )
 
