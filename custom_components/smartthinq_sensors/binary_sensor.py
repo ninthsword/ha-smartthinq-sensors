@@ -223,10 +223,10 @@ async def async_setup_entry(
     _LOGGER.debug("Starting LGE ThinQ binary sensors setup...")
 
     @callback
-    def _async_discover_device(lge_devices_custom: dict) -> None:
+    def _async_discover_device(lge_devices: dict) -> None:
         """Add entities for a discovered ThinQ device."""
 
-        if not lge_devices_custom:
+        if not lge_devices:
             return
 
         lge_sensors = []
@@ -237,7 +237,7 @@ async def async_setup_entry(
                 LGEBinarySensor(lge_device, sensor_desc, LGEWashDevice(lge_device))
                 for sensor_desc in WASH_DEV_BINARY_SENSORS
                 for lge_device in get_multiple_devices_types(
-                    lge_devices_custom, WASH_DEVICE_TYPES
+                    lge_devices, WASH_DEVICE_TYPES
                 )
                 if _binary_sensor_exist(lge_device, sensor_desc)
             ]
@@ -250,7 +250,7 @@ async def async_setup_entry(
                     lge_device, sensor_desc, LGERefrigeratorDevice(lge_device)
                 )
                 for sensor_desc in REFRIGERATOR_BINARY_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.REFRIGERATOR, [])
+                for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
                 if _binary_sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -260,7 +260,7 @@ async def async_setup_entry(
             [
                 LGEBinarySensor(lge_device, sensor_desc, LGERangeDevice(lge_device))
                 for sensor_desc in RANGE_BINARY_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.RANGE, [])
+                for lge_device in lge_devices.get(DeviceType.RANGE, [])
                 if _binary_sensor_exist(lge_device, sensor_desc)
             ]
         )
@@ -270,7 +270,7 @@ async def async_setup_entry(
             [
                 LGEBinarySensor(lge_device, sensor_desc)
                 for sensor_desc in DEHUMIDIFIER_BINARY_SENSORS
-                for lge_device in lge_devices_custom.get(DeviceType.DEHUMIDIFIER, [])
+                for lge_device in lge_devices.get(DeviceType.DEHUMIDIFIER, [])
                 if _binary_sensor_exist(lge_device, sensor_desc)
             ]
         )
