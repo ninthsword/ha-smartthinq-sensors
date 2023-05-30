@@ -129,36 +129,36 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         key=AirConditionerFeatures.MODE_ICEVALLEY,                        
         name="아이스쿨파워",                                            
         icon="mdi:snowflake",                                        
-        turn_off_fn=lambda x: x.device.set_icevalley(False),         
-        turn_on_fn=lambda x: x.device.set_icevalley(True),           
+        turn_off_fn=lambda x: x.device.set_mode_icevalley(False),         
+        turn_on_fn=lambda x: x.device.set_mode_cevalley(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_SMARTCARE,                        
         name="스마트케어",                                            
         icon="mdi:fan-auto",                                         
-        turn_off_fn=lambda x: x.device.set_smartcare(False),         
-        turn_on_fn=lambda x: x.device.set_smartcare(True),           
+        turn_off_fn=lambda x: x.device.set_mode_smartcare(False),         
+        turn_on_fn=lambda x: x.device.set_mode_smartcare(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_LONGPOWER,                        
         name="아이스롱파워",                                            
         icon="mdi:wind-power",                                       
-        turn_off_fn=lambda x: x.device.set_longpower(False),         
-        turn_on_fn=lambda x: x.device.set_longpower(True),           
+        turn_off_fn=lambda x: x.device.set_mode_longpower(False),         
+        turn_on_fn=lambda x: x.device.set_mode_longpower(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_POWERSAVE,                        
         name="절전",                                            
         icon="mdi:leaf",                                             
-        turn_off_fn=lambda x: x.device.set_powersave(False),         
-        turn_on_fn=lambda x: x.device.set_powersave(True),           
+        turn_off_fn=lambda x: x.device.set_mode_powersave(False),         
+        turn_on_fn=lambda x: x.device.set_mode_powersave(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_AUTODRY,                          
         name="자동건조",                                              
         icon="mdi:hair-dryer-outline",                               
-        turn_off_fn=lambda x: x.device.set_autodry(False),           
-        turn_on_fn=lambda x: x.device.set_autodry(True),             
+        turn_off_fn=lambda x: x.device.set_mode_autodry(False),           
+        turn_on_fn=lambda x: x.device.set_mode_autodry(True),             
     ),                                                               
 )
 
@@ -166,7 +166,15 @@ AC_DUCT_SWITCH = ThinQSwitchEntityDescription(
     key="duct-zone",
     name="Zone",
 )
-
+DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+    ThinQSwitchEntityDescription(
+        key=DehumidifierFeatures.MODE_AIRREMOVAL,
+        name="공기제균",
+        icon="mdi:air-filter",                               
+        turn_off_fn=lambda x: x.device.set_mode_airremoval(False),           
+        turn_on_fn=lambda x: x.device.set_mode_airremoval(True),     
+    ),
+)
 
 def _switch_exist(
     lge_device: LGEDevice, switch_desc: ThinQSwitchEntityDescription
