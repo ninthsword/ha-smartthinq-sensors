@@ -97,7 +97,7 @@ REFRIGERATOR_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
 AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.MODE_AIRCLEAN,
-        name="공기청정", ###
+        name="공기청정",
         icon="mdi:pine-tree",
         turn_off_fn=lambda x: x.device.set_mode_airclean(False),
         turn_on_fn=lambda x: x.device.set_mode_airclean(True),
@@ -130,7 +130,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         name="아이스쿨파워",                                            
         icon="mdi:snowflake",                                        
         turn_off_fn=lambda x: x.device.set_mode_icevalley(False),         
-        turn_on_fn=lambda x: x.device.set_mode_cevalley(True),           
+        turn_on_fn=lambda x: x.device.set_mode_icevalley(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_SMARTCARE,                        
@@ -166,6 +166,7 @@ AC_DUCT_SWITCH = ThinQSwitchEntityDescription(
     key="duct-zone",
     name="Zone",
 )
+
 DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=DehumidifierFeatures.MODE_AIRREMOVAL,
