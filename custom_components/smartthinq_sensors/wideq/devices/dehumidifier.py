@@ -16,6 +16,9 @@ SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
 SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
 SUPPORT_AIR_POLUTION = ["SupportAirPolution", "support.airPolution"]
 
+SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
+SUPPORT_AIRREMOVAL = [SUPPORT_RAC_MODE, "@AP_AIRREMOVAL"]
+
 STATE_OPERATION = ["Operation", "airState.operation"]
 STATE_OPERATION_MODE = ["OpMode", "airState.opMode"]
 STATE_TARGET_HUM = ["HumidityCfg", "airState.humidity.desired"]
@@ -53,20 +56,20 @@ class DHumOp(Enum):
 class DHumMode(Enum):
     """The operation mode for a Dehumidifier device."""
 
-    SMART = "@AP_MAIN_MID_OPMODE_SMART_DEHUM_W"
-    FAST = "@AP_MAIN_MID_OPMODE_FAST_DEHUM_W"
-    CILENT = "@AP_MAIN_MID_OPMODE_CILENT_DEHUM_W"
-    CONC_DRY = "@AP_MAIN_MID_OPMODE_CONCENTRATION_DRY_W"
-    CLOTH_DRY = "@AP_MAIN_MID_OPMODE_CLOTHING_DRY_W"
-    IONIZER = "@AP_MAIN_MID_OPMODE_IONIZER_W"
+    스마트제습 = "@AP_MAIN_MID_OPMODE_SMART_DEHUM_W"
+    쾌속제습 = "@AP_MAIN_MID_OPMODE_FAST_DEHUM_W"
+    저소음제습 = "@AP_MAIN_MID_OPMODE_CILENT_DEHUM_W"
+    집중건조 = "@AP_MAIN_MID_OPMODE_CONCENTRATION_DRY_W"
+    의류건조 = "@AP_MAIN_MID_OPMODE_CLOTHING_DRY_W"
+    #IONIZER = "@AP_MAIN_MID_OPMODE_IONIZER_W"
 
 
 class DHumFanSpeed(Enum):
     """The fan speed for a Dehumidifier device."""
 
-    LOW = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_LOW_W"
-    MID = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_MID_W"
-    HIGH = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_HIGH_W"
+    약풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_LOW_W"
+    중풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_MID_W"
+    강풍 = "@AP_MAIN_MID_WINDSTRENGTH_DHUM_HIGH_W"
 
 
 class DeHumidifierDevice(Device):
