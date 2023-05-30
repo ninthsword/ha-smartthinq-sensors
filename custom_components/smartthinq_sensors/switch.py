@@ -96,7 +96,7 @@ REFRIGERATOR_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
 AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.MODE_AIRCLEAN,
-        name="Airclean", ###
+        name="공기청정", ###
         icon="mdi:pine-tree",
         turn_off_fn=lambda x: x.device.set_mode_airclean(False),
         turn_on_fn=lambda x: x.device.set_mode_airclean(True),
@@ -111,7 +111,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ),
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.LIGHTING_DISPLAY,
-        name="Display light",
+        name="화면밝기",
         icon="mdi:wall-sconce-round",
         turn_off_fn=lambda x: x.device.set_lighting_display(False),
         turn_on_fn=lambda x: x.device.set_lighting_display(True),
@@ -126,35 +126,35 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ),
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_ICEVALLEY,                        
-        name="Icevalley",                                            
+        name="아이스쿨파워",                                            
         icon="mdi:snowflake",                                        
         turn_off_fn=lambda x: x.device.set_icevalley(False),         
         turn_on_fn=lambda x: x.device.set_icevalley(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_SMARTCARE,                        
-        name="Smartcare",                                            
+        name="스마트케어",                                            
         icon="mdi:fan-auto",                                         
         turn_off_fn=lambda x: x.device.set_smartcare(False),         
         turn_on_fn=lambda x: x.device.set_smartcare(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_LONGPOWER,                        
-        name="Longpower",                                            
+        name="아이스롱파워",                                            
         icon="mdi:wind-power",                                       
         turn_off_fn=lambda x: x.device.set_longpower(False),         
         turn_on_fn=lambda x: x.device.set_longpower(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_POWERSAVE,                        
-        name="Powersave",                                            
+        name="절전",                                            
         icon="mdi:leaf",                                             
         turn_off_fn=lambda x: x.device.set_powersave(False),         
         turn_on_fn=lambda x: x.device.set_powersave(True),           
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_AUTODRY,                          
-        name="Autodry",                                              
+        name="자동건조",                                              
         icon="mdi:hair-dryer-outline",                               
         turn_off_fn=lambda x: x.device.set_autodry(False),           
         turn_on_fn=lambda x: x.device.set_autodry(True),             
