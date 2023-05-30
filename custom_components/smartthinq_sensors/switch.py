@@ -240,7 +240,17 @@ async def async_setup_entry(
                 if _switch_exist(lge_device, switch_desc)
             ]
         )
-
+        
+        # add Dehumidifier switch
+        lge_switch.extend(
+            [
+                LGESwitch(lge_device, switch_desc)
+                for switch_desc in DEHUMIDIFIER_SWITCH
+                for lge_device in lge_devices.get(DeviceType.DEHUMIDIFIER, [])
+                if _switch_exist(lge_device, switch_desc)
+            ]
+        )
+        
         # add AC duct zone switch
         lge_switch.extend(
             [
@@ -249,7 +259,7 @@ async def async_setup_entry(
                 for duct_zone in lge_device.device.duct_zones
             ]
         )
-
+        
         async_add_entities(lge_switch)
 
     _async_discover_device(lge_cfg_devices)
