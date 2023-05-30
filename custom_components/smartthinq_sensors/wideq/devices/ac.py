@@ -208,7 +208,7 @@ class ACFanSpeedRAC(Enum):
     강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
     자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
     
-class ACFanSpeedPAC(StrEnum):
+class ACFanSpeedPAC(Enum):
     """The fan speed for an AC/HVAC device."""
     
     정지_약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W"
