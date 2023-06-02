@@ -277,11 +277,16 @@ class ACHSwingMode(Enum):
     """The swing mode for an AC/HVAC device."""
 
     정지 = "@OFF"
-    회전 = "@ON"
-    회전_정지 = "@LEFT_ON"      
-    정지_회전 = "@RIGHT_ON"     
-    회전_회전 = "@ALL_ON"       
- 
+    회전_정지 = "@LEFT_ON"
+    정지_회전 = "@RIGHT_ON"
+    회전 = "@ALL_ON"
+    
+class ACHSwingModeDevice(Enum):   
+    """The swing mode for an AC/HVAC device."""
+
+    정지 = "@OFF"
+    회전 = "@ALL_ON"
+
 class JetMode(Enum):
     """Possible JET modes."""
 
@@ -687,9 +692,9 @@ class AirConditionerDevice(Device):
                 return []
             
             mapping = values.options
-            mode_list = [e.value for e in ACHSwingMode]
+            mode_list = [e.value for e in ACHSwingModeDevice]
             self._supported_horizontal_swings = [
-                ACHSwingMode(o).name for o in mapping.values() if o in mode_list
+                ACHSwingModeDevice(o).name for o in mapping.values() if o in mode_list
             ]
         return self._supported_horizontal_swings
 
