@@ -203,11 +203,11 @@ class ACMode(Enum):
 class ACFanSpeedRAC(Enum):
     """The fan speed for an AC/HVAC device."""
     
-    1단 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
-    2단 = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
-    3단 = "@AC_MAIN_WIND_STRENGTH_MID_W"
-    4단 = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
-    5단 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
+    약풍 = "@AC_MAIN_WIND_STRENGTH_LOW_W"
+    약중풍 = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
+    중풍 = "@AC_MAIN_WIND_STRENGTH_MID_W"
+    중강풍 = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
+    강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
     자연풍 = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
     
 class ACFanSpeedPAC(Enum):
