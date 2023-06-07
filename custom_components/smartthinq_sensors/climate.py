@@ -186,6 +186,7 @@ class LGEACClimate(LGEClimate):
             self._support_hor_swing = len(self._device.horizontal_swing_modes) > 0
         
         self._set_hor_swing = self._support_hor_swing and not self._support_ver_swing
+        self._set_ver_swing = self._support_ver_swing and not self._support_hor_swing
 
     def _available_hvac_modes(self) -> dict[str, HVACMode]:
         """Return available hvac modes from lookup dict."""
@@ -409,6 +410,7 @@ class LGEACClimate(LGEClimate):
         avl_mode = False
         curr_mode = None
         set_hor_swing = swing_mode.startswith(SWING_PREFIX[1])
+        set_ver_swing = swing_mode.startswith(SWING_PREFIX[0])
         dev_mode = remove_prefix(swing_mode, SWING_PREFIX[1 if set_hor_swing else 0])
         if self._device.model_info.model_type == "RAC":
             if set_hor_swing:
@@ -445,6 +447,7 @@ class LGEACClimate(LGEClimate):
                     await self._device.set_vertical_swing_mode(dev_mode)
             self._api.async_set_updated()
         self._set_hor_swing = set_hor_swing
+        self._set_ver_swing = set_ver_swing
 
     async def async_turn_on(self) -> None:
         """Turn the entity on."""
