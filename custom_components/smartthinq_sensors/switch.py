@@ -119,7 +119,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ),
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.MODE_AWHP_SILENT,
-        name="Silent mode",
+        name="저소음",
         icon="mdi:ear-hearing-off",
         turn_off_fn=lambda x: x.device.set_mode_awhp_silent(False),
         turn_on_fn=lambda x: x.device.set_mode_awhp_silent(True),
