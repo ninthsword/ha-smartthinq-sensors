@@ -48,6 +48,9 @@ SUPPORT_AIRCLEAN_RAC = [SUPPORT_RAC_MODE, "@AIRCLEAN"]
 SUPPORT_AUTODRY_RAC = [SUPPORT_RAC_MODE, "@AUTODRY"]                                             
 SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]                                      
 
+#SAC
+SUPPORT_SAC_SUBMODE = ["SupportSACSubMode", "support.sacSubMode"]
+SUPPORT_MODE_SILENT = [SUPPORT_SAC_SUBMODE, "@SUPPORT_LOW_NOISE"]
 
 CTRL_BASIC = ["Control", "basicCtrl"]
 CTRL_WIND_DIRECTION = ["Control", "wDirCtrl"]
@@ -337,6 +340,7 @@ class AirConditionerDevice(Device):
         self._is_mode_longpower_supported = None          
         self._is_mode_powersave_supported = None          
         self._is_mode_autodry_supported = None            
+        self._is_mode_silent_supported = None     
         
         self._is_duct_zones_supported = None
         self._supported_operation = None
@@ -790,7 +794,7 @@ class AirConditionerDevice(Device):
 
     @property                                                                                
     def is_mode_powersave_supported(self):                                                        
-        """Return if Smartcare is supported."""                                              
+        """Return if Powersave is supported."""                                              
         if self._is_mode_powersave_supported is None:
             if self.model_info.model_type == "PAC":
                self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)  
@@ -800,13 +804,42 @@ class AirConditionerDevice(Device):
 
     @property                                                                                
     def is_mode_autodry_supported(self):                                                          
-        """Return if Smartcare is supported."""                                              
+        """Return if Autodry is supported."""                                              
         if self._is_mode_autodry_supported is None:                                               
             if self.model_info.model_type == "PAC":
                 self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)     
             else:
                 self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)
         return self._is_mode_autodry_supported                                                    
+
+    @property                                                                                
+    def is_mode_silent_supported(self):                                                        
+        """Return if Silent is supported."""                                              
+        if self._is_mode_silent_supported is None:
+               self._is_mode_silent_supported = self._is_mode_supported(SUPPORT_MODE_SILENT)
+        return self._is_mode_silent_supported
+
+    @property
+    def is_cool_available(self):
+        """Return if Cool is available."""
+        if not self._status.is_on:
+            return False
+        if (curr_op_mode := self._status.operation_mode) is None:
+            return False
+        if curr_op_mode in ACMode.COOL.name:
+            return True
+        return False
+
+    @property
+    def is_dry_available(self):
+        """Return if Cool is available."""
+        if not self._status.is_on:
+            return False
+        if (curr_op_mode := self._status.operation_mode) is None:
+            return False
+        if curr_op_mode in ACMode.DRY.name:
+            return True
+        return False
 
     @property
     def supported_mode_jet(self):
@@ -1025,7 +1058,8 @@ class AirConditionerDevice(Device):
     async def set_mode_awhp_silent(self, value: bool):
         """Set the AWHP silent mode on or off."""
         if not self.is_air_to_water:
-            raise ValueError("AWHP silent mode not supported")
+            if  not self.is_mode_silent_supported:
+                raise ValueError("AWHP silent mode not supported")
         mode = MODE_ON if value else MODE_OFF
         keys = self._get_cmd_keys(CMD_STATE_MODE_AWHP_SILENT)
         if (silent_mode := self.model_info.enum_value(keys[2], mode)) is None:
