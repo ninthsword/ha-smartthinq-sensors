@@ -123,7 +123,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         icon="mdi:ear-hearing-off",
         turn_off_fn=lambda x: x.device.set_mode_awhp_silent(False),
         turn_on_fn=lambda x: x.device.set_mode_awhp_silent(True),
-        available_fn=lambda x: x.is_power_on,
+        available_fn=lambda x: x.device.is_cool_available,
     ),
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_ICEVALLEY,                        
@@ -131,6 +131,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         icon="mdi:snowflake",                                        
         turn_off_fn=lambda x: x.device.set_mode_icevalley(False),         
         turn_on_fn=lambda x: x.device.set_mode_icevalley(True),           
+        available_fn=lambda x: x.device.is_cool_available,
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_SMARTCARE,                        
@@ -145,6 +146,7 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         icon="mdi:wind-power",                                       
         turn_off_fn=lambda x: x.device.set_mode_longpower(False),         
         turn_on_fn=lambda x: x.device.set_mode_longpower(True),           
+        available_fn=lambda x: x.device.is_cool_available,
     ),                                                               
     ThinQSwitchEntityDescription(                                    
         key=AirConditionerFeatures.MODE_POWERSAVE,                        
