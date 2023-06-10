@@ -23,14 +23,17 @@ SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]
 SUPPORT_SMARTCARE = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_SMARTCARE_W"]
 SUPPORT_LONGPOWER = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_LONGPOWER_W"]
 
+
+
 #PAC
 SUPPORT_PAC_MODE = ["SupportPACMode", "support.pacMode"]
-
+SUPPORT_PAC_MODEEXT = ["SupportModeExt","support.pacModeExt"]
 SUPPORT_HOT_WATER = [SUPPORT_PAC_MODE, "@HOTWATER"]
 
 SUPPORT_AIRCLEAN_PAC = [SUPPORT_PAC_MODE, "@AIRCLEAN"]                                       
 SUPPORT_AUTODRY_PAC = [SUPPORT_PAC_MODE, "@AUTODRY"]                                             
 SUPPORT_POWERSAVE_PAC = [SUPPORT_PAC_MODE, "@ENERGYSAVING"]                                      
+SUPPORT_DUAL_OP = [SUPPORT_PAC_MODE, "@INDIVIDUALCTRL"]
 
 #RAC
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
@@ -265,8 +268,9 @@ class ACHStepMode(Enum):
     위치3 = "@3"  
     위치4 = "@4"  
     위치5 = "@5"  
-    좌반 = "@13"  
-    우반 = "@35"  
+    좌측집중 = "@13"
+    중앙집중 = "@24"
+    우측집중 = "@35"  
     회전 = "@100"  
 
 class ACVSwingMode(Enum):                       
@@ -628,15 +632,15 @@ class AirConditionerDevice(Device):
                 self._supported_fan_speeds = []
                 return []
             mapping = self.model_info.value(key).options
-            if self.model_info.model_type == "RAC":
-                mode_list = [e.value for e in ACFanSpeedRAC]
-                self._supported_fan_speeds = [
-                    ACFanSpeedRAC(o).name for o in mapping.values() if o in mode_list
-                ]
-            elif self.model_info.model_type == "PAC":
+            if self.model_info.model_type == "PAC":
                 mode_list = [e.value for e in ACFanSpeedPAC]            
                 self._supported_fan_speeds = [
                    ACFanSpeedPAC(o).name for o in mapping.values() if o in mode_list
+                ]
+            else:
+                mode_list = [e.value for e in ACFanSpeedRAC]
+                self._supported_fan_speeds = [
+                    ACFanSpeedRAC(o).name for o in mapping.values() if o in mode_list
                 ]
         return self._supported_fan_speeds
 
@@ -673,7 +677,14 @@ class AirConditionerDevice(Device):
             if not hasattr(values, "options"):
                 return []
 
-            mapping = values.options
+            mapping_ori = values.options
+            seen = []
+            mapping = dict()
+            for key, val in mapping_ori.items():
+                if val not in seen:
+                    seen.append(val)
+                    mapping[key] = val
+            
             mode_list = [e.value for e in ACVStepMode]
             self._supported_vertical_steps = [
                 ACVStepMode(o).name for o in mapping.values() if o in mode_list
@@ -750,10 +761,10 @@ class AirConditionerDevice(Device):
     def is_mode_airclean_supported(self):
         """Return if AirClean mode is supported."""
         if self._is_mode_airclean_supported is None:
-            if self.model_info.model_type == "RAC":
-                self._is_mode_airclean_supported = self._is_mode_supported(SUPPORT_AIRCLEAN_RAC)
-            elif self.model_info.model_type == "PAC":
+            if self.model_info.model_type == "PAC":
                 self._is_mode_airclean_supported = self._is_mode_supported(SUPPORT_AIRCLEAN_PAC)
+            else:
+                self._is_mode_airclean_supported = self._is_mode_supported(SUPPORT_AIRCLEAN_RAC)
         return self._is_mode_airclean_supported
         
     @property                                                                                
@@ -780,21 +791,21 @@ class AirConditionerDevice(Device):
     @property                                                                                
     def is_mode_powersave_supported(self):                                                        
         """Return if Smartcare is supported."""                                              
-        if self._is_mode_powersave_supported is None:                                             
-            if self.model_info.model_type == "RAC":  
-               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_RAC)        
-            elif self.model_info.model_type == "PAC":  
-               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)        
+        if self._is_mode_powersave_supported is None:
+            if self.model_info.model_type == "PAC":
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_PAC)  
+            else:  
+               self._is_mode_powersave_supported = self._is_mode_supported(SUPPORT_POWERSAVE_RAC)
         return self._is_mode_powersave_supported                                                  
 
     @property                                                                                
     def is_mode_autodry_supported(self):                                                          
         """Return if Smartcare is supported."""                                              
         if self._is_mode_autodry_supported is None:                                               
-            if self.model_info.model_type == "RAC":  
-                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)            
-            elif self.model_info.model_type == "PAC":  
-                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)            
+            if self.model_info.model_type == "PAC":
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_PAC)     
+            else:
+                self._is_mode_autodry_supported = self._is_mode_supported(SUPPORT_AUTODRY_RAC)
         return self._is_mode_autodry_supported                                                    
 
     @property
@@ -874,10 +885,10 @@ class AirConditionerDevice(Device):
         if speed not in self.fan_speeds:
             raise ValueError(f"Invalid fan speed: {speed}")
         keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
-        if self.model_info.model_type == "RAC":
+        if self.model_info.model_type == "PAC":
+            speed_value = self.model_info.enum_value(keys[2], ACFanSpeedPAC[speed].value)     
+        else:
             speed_value = self.model_info.enum_value(keys[2], ACFanSpeedRAC[speed].value)
-        elif self.model_info.model_type == "PAC":
-            speed_value = self.model_info.enum_value(keys[2], ACFanSpeedPAC[speed].value)        
         await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
 
     async def set_horizontal_step_mode(self, mode):
@@ -927,12 +938,12 @@ class AirConditionerDevice(Device):
             raise ValueError("Airclean mode not supported")
 
         keys = self._get_cmd_keys(CMD_STATE_MODE_AIRCLEAN)
-        if self.model_info.model_type == "RAC":
-            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
-            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
-        elif self.model_info.model_type == "PAC":
+        if self.model_info.model_type == "PAC":
             MODE_AIRCLEAN_OFF = "@OFF"
             MODE_AIRCLEAN_ON = "@ON"
+        else:
+            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
+            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
         mode_key = MODE_AIRCLEAN_ON if status else MODE_AIRCLEAN_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
@@ -1261,10 +1272,10 @@ class AirConditionerStatus(DeviceStatus):
         if (value := self.lookup_enum(key, True)) is None:
             return None
         try:
-            if self._device.model_info.model_type == "RAC":
-                return ACFanSpeedRAC(value).name
-            elif self._device.model_info.model_type == "PAC":
+            if self._device.model_info.model_type == "PAC":
                 return ACFanSpeedPAC(value).name
+            else:
+                return ACFanSpeedRAC(value).name
         except ValueError:
             return None
 
@@ -1407,12 +1418,12 @@ class AirConditionerStatus(DeviceStatus):
         key = self._get_state_key(STATE_MODE_AIRCLEAN)
         if (value := self.lookup_enum(key, True)) is None:
             return None
-        if self._device.model_info.model_type == "RAC":
-            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
-            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
-        elif self._device.model_info.model_type == "PAC":
+        if self._device.model_info.model_type == "PAC":
             MODE_AIRCLEAN_OFF = "@OFF"
             MODE_AIRCLEAN_ON = "@ON"
+        else:
+            MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
+            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
         status = value == MODE_AIRCLEAN_ON
         return self._update_feature(AirConditionerFeatures.MODE_AIRCLEAN, status, False)
 
