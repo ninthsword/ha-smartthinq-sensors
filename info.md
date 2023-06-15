@@ -1,3 +1,7 @@
+Custom from ollo69
+
+v0.31.8-0.1
+
 # LG ThinQ Devices integration for HomeAssistant
 
 A HomeAssistant custom integration to monitor and control LG devices using ThinQ API based on [WideQ project][wideq].
