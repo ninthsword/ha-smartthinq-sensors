@@ -1,4 +1,4 @@
-Custom from ollo69
+Custom from [ollo69](https://github.com/ollo69/ha-smartthinq-sensors)
 
 v0.31.8-0.1
 
