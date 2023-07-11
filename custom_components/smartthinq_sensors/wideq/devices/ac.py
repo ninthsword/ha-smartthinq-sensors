@@ -236,6 +236,8 @@ class ACFanSpeedPAC(Enum):
     강풍_중풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W"
     강풍_강풍 = "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W"
 
+    자동_자동 = "@AC_MAIN_WIND_STRENGTH_AUTO_LEFT_W|AC_MAIN_WIND_STRENGTH_AUTO_RIGHT_W"
+
 class ACVStepMode(Enum):
     """
     The vertical step mode for an AC/HVAC device.
