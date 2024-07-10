@@ -161,11 +161,19 @@ class LGEDeHumidifier(LGEBaseHumidifier):
 
     async def async_set_humidity(self, humidity: int) -> None:
         """Set new target humidity."""
-        humidity_step = self._device.target_humidity_step or 1
-        target_humidity = humidity + (humidity % humidity_step)
+        humidity_step = self._device.target_humidity_step #or 1 #변경
+        target_humidity = self._api.state.device_features.get(DehumidifierFeatures.TARGET_HUMIDITY) #추가
+        if target_humidity >= humidity: #추가
+            a = 5 - (target_humidity - humidity) if humidity % humidity_step != 0 else 0 #추가
+            b = (target_humidity - humidity) // humidity_step * humidity_step if humidity % humidity_step != 0 else 0 #추가
+            target_humidity = humidity - a - b #추가
+        else: #추가
+            a = 5 - (humidity - target_humidity) if humidity % humidity_step != 0 else 0 #추가
+            b = (humidity - target_humidity) // humidity_step * humidity_step if humidity % humidity_step != 0 else 0 #추가
+            target_humidity = humidity + a + b #변경
         await self._device.set_target_humidity(target_humidity)
         self._api.async_set_updated()
-
+            
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
         await self._device.power(True)
