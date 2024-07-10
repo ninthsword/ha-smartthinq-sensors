@@ -29,3 +29,23 @@ set_fan_mode:
       example: "low"
       selector:
         text:
+
+set_sleep_time:
+  name: Set sleep time
+  description: Set sleep time.
+  target:
+    entity:
+      integration: smartthinq_sensors_custom
+      domain: climate
+  fields:
+    sleep_time:
+      name: "Timeout"
+      description: Timeout for sleep mode in minutes
+      default: 60
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 720
+          mode: box
+          unit_of_measurement: minutes
