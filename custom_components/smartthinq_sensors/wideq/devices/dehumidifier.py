@@ -1,8 +1,10 @@
 """------------------for Dehumidifier"""
+
 from __future__ import annotations
 
 from enum import Enum
 
+from ..backports.functools import cached_property
 from ..const import DehumidifierFeatures
 from ..core_async import ClientAsync
 from ..core_exceptions import InvalidRequestError
@@ -18,7 +20,6 @@ SUPPORT_AIR_POLUTION = ["SupportAirPolution", "support.airPolution"]
 
 SUPPORT_RAC_MODE = ["SupportRACMode", "support.racMode"]
 SUPPORT_MODE_AIRREMOVAL = [SUPPORT_RAC_MODE, "@AP_AIRREMOVAL"]
-
 STATE_OPERATION = ["Operation", "airState.operation"]
 STATE_OPERATION_MODE = ["OpMode", "airState.opMode"]
 STATE_TARGET_HUM = ["HumidityCfg", "airState.humidity.desired"]
@@ -33,14 +34,12 @@ STATE_TANK_LIGHT = ["WatertankLight", "airState.miscFuncState.watertankLight"]
 STATE_POWER = [STATE_POWER_V1, "airState.energy.onCurrent"]
 
 STATE_MODE_AIRREMOVAL = ["AirRemoval", "airState.miscFuncState.AirRemoval"]
-
 CMD_STATE_OPERATION = [CTRL_BASIC, "Set", STATE_OPERATION]
 CMD_STATE_OP_MODE = [CTRL_BASIC, "Set", STATE_OPERATION_MODE]
 CMD_STATE_TARGET_HUM = [CTRL_BASIC, "Set", STATE_TARGET_HUM]
 CMD_STATE_WIND_STRENGTH = [CTRL_BASIC, "Set", STATE_WIND_STRENGTH]
 
 CMD_STATE_MODE_AIRREMOVAL = [CTRL_BASIC, "Set", STATE_MODE_AIRREMOVAL]
-
 CMD_ENABLE_EVENT_V2 = ["allEventEnable", "Set", "airState.mon.timeout"]
 
 DEFAULT_MIN_HUM = 30
@@ -84,71 +83,35 @@ class DeHumidifierDevice(Device):
 
     def __init__(self, client: ClientAsync, device_info: DeviceInfo):
         super().__init__(client, device_info, DeHumidifierStatus(self))
-        self._supported_op_modes = None
-        self._supported_fan_speeds = None
         self._is_mode_airremoval_supported = None
-        self._humidity_range = None
-        self._humidity_step = DEFAULT_STEP_HUM
+                                                
 
         self._current_power = 0
         self._current_power_supported = True
 
-    def _get_humidity_range(self):
+    @cached_property
+    def _humidity_range(self):
         """Get valid humidity range for model."""
+        key = self._get_state_key(STATE_TARGET_HUM)
+        range_info = self.model_info.value(key)
+        if not range_info:
+            min_hum = DEFAULT_MIN_HUM
+            max_hum = DEFAULT_MAX_HUM
+        else:
+            min_hum = min(range_info.min, DEFAULT_MIN_HUM)
+            max_hum = max(range_info.max, DEFAULT_MAX_HUM)
+        return [min_hum, max_hum]
 
-        if not self._humidity_range:
-            if not self.model_info:
-                return None
-
-            key = self._get_state_key(STATE_TARGET_HUM)
-            range_info = self.model_info.value(key)
-            if not range_info:
-                min_hum = DEFAULT_MIN_HUM
-                max_hum = DEFAULT_MAX_HUM
-            else:
-                min_hum = min(range_info.min, DEFAULT_MIN_HUM)
-                max_hum = max(range_info.max, DEFAULT_MAX_HUM)
-            self._humidity_range = [min_hum, max_hum]
-
-        return self._humidity_range
-    
-    def _is_mode_supported(self, key):
-        """Check if a specific mode for support key is supported."""
-        if not isinstance(key, list):
-            return False
-        supp_key = self._get_state_key(key[0])
-        return self.model_info.enum_value(supp_key, key[1]) is not None    
-    
-    @property
+    @cached_property
     def op_modes(self):
         """Return a list of available operation modes."""
-        if self._supported_op_modes is None:
-            key = self._get_state_key(SUPPORT_OPERATION_MODE)
-            if not self.model_info.is_enum_type(key):
-                self._supported_op_modes = []
-                return []
-            mapping = self.model_info.value(key).options
-            mode_list = [e.value for e in DHumMode]
-            self._supported_op_modes = [
-                DHumMode(o).name for o in mapping.values() if o in mode_list
-            ]
-        return self._supported_op_modes
+        return self._get_property_values(SUPPORT_OPERATION_MODE, DHumMode)
 
-    @property
+    @cached_property
     def fan_speeds(self):
         """Return a list of available fan speeds."""
-        if self._supported_fan_speeds is None:
-            key = self._get_state_key(SUPPORT_WIND_STRENGTH)
-            if not self.model_info.is_enum_type(key):
-                self._supported_fan_speeds = []
-                return []
-            mapping = self.model_info.value(key).options
-            mode_list = [e.value for e in DHumFanSpeed]
-            self._supported_fan_speeds = [
-                DHumFanSpeed(o).name for o in mapping.values() if o in mode_list
-            ]
-        return self._supported_fan_speeds
-    
+        return self._get_property_values(SUPPORT_WIND_STRENGTH, DHumFanSpeed)
+
     @property
     def is_mode_airremoval_supported(self):
         """Return if AirClean mode is supported."""
@@ -156,24 +119,20 @@ class DeHumidifierDevice(Device):
             self._is_mode_airremoval_supported = self._is_mode_supported(SUPPORT_MODE_AIRREMOVAL)
         return self._is_mode_airremoval_supported
     
-    @property
+    @property            
     def target_humidity_step(self):
         """Return target humidity step used."""
-        return self._humidity_step
+        return DEFAULT_STEP_HUM
 
     @property
     def target_humidity_min(self):
         """Return minimum value for target humidity."""
-        if not (hum_range := self._get_humidity_range()):
-            return None
-        return hum_range[0]
+        return self._humidity_range[0]
 
     @property
     def target_humidity_max(self):
         """Return maximum value for target humidity."""
-        if not (hum_range := self._get_humidity_range()):
-            return None
-        return hum_range[1]
+        return self._humidity_range[1]
 
     async def power(self, turn_on):
         """Turn on or off the device (according to a boolean)."""
@@ -206,7 +165,6 @@ class DeHumidifierDevice(Device):
         keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
         speed_value = self.model_info.enum_value(keys[2], DHumFanSpeed[speed].value)
         await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
-    
     async def set_mode_airremoval(self, status: bool):
         """Set the Airremoval mode on or off."""
         if not self.is_mode_airremoval_supported:
@@ -216,11 +174,10 @@ class DeHumidifierDevice(Device):
         mode_key = MODE_ON if status else MODE_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
-    
     async def set_target_humidity(self, humidity):
         """Set the device's target humidity."""
 
-        range_info = self._get_humidity_range()
+        range_info = self._humidity_range
         if range_info and not (range_info[0] <= humidity <= range_info[1]):
             raise ValueError(f"Target humidity out of range: {humidity}")
         keys = self._get_cmd_keys(CMD_STATE_TARGET_HUM)
@@ -288,6 +245,8 @@ class DeHumidifierDevice(Device):
 class DeHumidifierStatus(DeviceStatus):
     """Higher-level information about a DeHumidifier's current status."""
 
+    _device: DeHumidifierDevice
+
     def __init__(self, device: DeHumidifierDevice, data: dict | None = None):
         """Initialize device status."""
         super().__init__(device, data)
@@ -351,7 +310,7 @@ class DeHumidifierStatus(DeviceStatus):
             return DHumFanSpeed(value).name
         except ValueError:
             return None
-    
+
     @property
     def mode_airremoval(self):
         """Return AirRemoval Mode status."""
@@ -362,7 +321,7 @@ class DeHumidifierStatus(DeviceStatus):
             return None
         status = value == MODE_ON
         return self._update_feature(DehumidifierFeatures.MODE_AIRREMOVAL, status, False)
-   
+        
     @property
     def current_humidity(self):
         """Return current humidity."""
