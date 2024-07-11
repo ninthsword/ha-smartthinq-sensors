@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from typing import Any, Awaitable, Callable, Tuple
+from typing import Any, Awaitable, Callable
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -21,12 +21,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import LGEDevice
 from .const import DOMAIN, LGE_DEVICES, LGE_DISCOVERY_NEW
-from .device_helpers import (
-    STATE_LOOKUP,
-    LGEBaseDevice,
-    get_entity_name,
-    get_multiple_devices_types,
-)
+from .device_helpers import STATE_LOOKUP, LGEBaseDevice
 from .wideq import (
     WM_DEVICE_TYPES,
     AirConditionerFeatures,
@@ -52,7 +47,7 @@ class ThinQSwitchEntityDescription(SwitchEntityDescription):
     value_fn: Callable[[Any], bool] | None = None
 
 
-WASH_DEV_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+WASH_DEV_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=ATTR_POWER,
         name="Power",
@@ -62,7 +57,7 @@ WASH_DEV_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         available_fn=lambda x: x.is_power_on or x.device.stand_by,
     ),
 )
-REFRIGERATOR_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+REFRIGERATOR_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=RefrigeratorFeatures.ECOFRIENDLY,
         name="Eco friendly",
@@ -96,7 +91,7 @@ REFRIGERATOR_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         available_fn=lambda x: x.device.set_values_allowed,
     ),
 )
-AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+AC_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=AirConditionerFeatures.MODE_AIRCLEAN,
         name="공기청정",
@@ -163,10 +158,9 @@ AC_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         icon="mdi:hair-dryer-outline",                               
         turn_off_fn=lambda x: x.device.set_mode_autodry(False),           
         turn_on_fn=lambda x: x.device.set_mode_autodry(True),             
-    ),                                                               
+    ),
 )
-
-MICROWAVE_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+MICROWAVE_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=MicroWaveFeatures.SOUND,
         name="Sound",
@@ -185,10 +179,14 @@ MICROWAVE_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ),
 )
 
-AC_DUCT_SWITCH = ThinQSwitchEntityDescription(
-    key="duct-zone",
-    name="Zone",
-)
+
+SWITCH_ENTITIES = {
+    DeviceType.AC: AC_SWITCH,
+    DeviceType.MICROWAVE: MICROWAVE_SWITCH,
+    DeviceType.REFRIGERATOR: REFRIGERATOR_SWITCH,
+    DeviceType.DEHUMIDIFIER: DEHUMIDIFIER_SWITCH,   
+    **{dev_type: WASH_DEV_SWITCH for dev_type in WM_DEVICE_TYPES},
+}
 
 DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
@@ -231,50 +229,14 @@ async def async_setup_entry(
         if not lge_devices:
             return
 
-        lge_switch = []
+        lge_switch = [
+            LGESwitch(lge_device, switch_desc)
+            for dev_type, switch_descs in SWITCH_ENTITIES.items()
+            for switch_desc in switch_descs
+            for lge_device in lge_devices.get(dev_type, [])
+            if _switch_exist(lge_device, switch_desc)
+        ]
 
-        # add WM devices
-        lge_switch.extend(
-            [
-                LGESwitch(lge_device, switch_desc)
-                for switch_desc in WASH_DEV_SWITCH
-                for lge_device in get_multiple_devices_types(
-                    lge_devices, WM_DEVICE_TYPES
-                )
-                if _switch_exist(lge_device, switch_desc)
-            ]
-        )
-
-        # add refrigerators
-        lge_switch.extend(
-            [
-                LGESwitch(lge_device, switch_desc)
-                for switch_desc in REFRIGERATOR_SWITCH
-                for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
-                if _switch_exist(lge_device, switch_desc)
-            ]
-        )
-
-        # add AC switch
-        lge_switch.extend(
-            [
-                LGESwitch(lge_device, switch_desc)
-                for switch_desc in AC_SWITCH
-                for lge_device in lge_devices.get(DeviceType.AC, [])
-                if _switch_exist(lge_device, switch_desc)
-            ]
-        )
-        
-        # add Dehumidifier switch
-        lge_switch.extend(
-            [
-                LGESwitch(lge_device, switch_desc)
-                for switch_desc in DEHUMIDIFIER_SWITCH
-                for lge_device in lge_devices.get(DeviceType.DEHUMIDIFIER, [])
-                if _switch_exist(lge_device, switch_desc)
-            ]
-        )
-        
         # add AC duct zone switch
         lge_switch.extend(
             [
@@ -284,16 +246,6 @@ async def async_setup_entry(
             ]
         )
 
-        # add MicroWave switch
-        lge_switch.extend(
-            [
-                LGESwitch(lge_device, switch_desc)
-                for switch_desc in MICROWAVE_SWITCH
-                for lge_device in lge_devices.get(DeviceType.MICROWAVE, [])
-                if _switch_exist(lge_device, switch_desc)
-            ]
-        )
-        
         async_add_entities(lge_switch)
 
     _async_discover_device(lge_cfg_devices)
@@ -303,10 +255,29 @@ async def async_setup_entry(
     )
 
 
-class LGESwitch(CoordinatorEntity, SwitchEntity):
+class LGEBaseSwitch(CoordinatorEntity, SwitchEntity):
+    """Base switch device."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
+
+    def __init__(self, api: LGEDevice):
+        """Initialize the base switch."""
+        super().__init__(api.coordinator)
+        self._api = api
+        self._attr_device_info = api.device_info
+        self._wrap_device = LGEBaseDevice(api)
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self._api.available
+
+
+class LGESwitch(LGEBaseSwitch):
     """Class to control switches for LGE device"""
 
     entity_description: ThinQSwitchEntityDescription
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -314,14 +285,9 @@ class LGESwitch(CoordinatorEntity, SwitchEntity):
         description: ThinQSwitchEntityDescription,
     ):
         """Initialize the switch."""
-        super().__init__(api.coordinator)
-        self._api = api
-        self._wrap_device = LGEBaseDevice(api)
+        super().__init__(api)
         self.entity_description = description
-        self._attr_name = get_entity_name(api, description.key, description.name)
         self._attr_unique_id = f"{api.unique_id}-{description.key}-switch"
-        self._attr_device_class = SwitchDeviceClass.SWITCH
-        self._attr_device_info = api.device_info
 
     @property
     def is_on(self):
@@ -372,14 +338,16 @@ class LGESwitch(CoordinatorEntity, SwitchEntity):
         return None
 
 
-class LGEDuctSwitch(LGESwitch):
+class LGEDuctSwitch(LGEBaseSwitch):
     """Class to control switches for LGE AC duct device"""
+
+    _attr_has_entity_name = True
 
     def __init__(self, api: LGEDevice, duct_zone: str):
         """Initialize the switch."""
-        super().__init__(api, AC_DUCT_SWITCH)
-        self._attr_name += f" {duct_zone}"
-        self._attr_unique_id += f"-{duct_zone}"
+        super().__init__(api)
+        self._attr_unique_id = f"{api.unique_id}-duct-zone-switch-{duct_zone}"
+        self._attr_name = f"Zone {duct_zone}"
         self._zone = duct_zone
 
     @property
