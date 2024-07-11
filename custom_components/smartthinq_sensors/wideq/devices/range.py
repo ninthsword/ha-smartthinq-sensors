@@ -1,361 +1,316 @@
-"""------------------for Air Purifier"""
+"""------------------for Oven"""
 
 from __future__ import annotations
 
-from enum import Enum
-
-from ..backports.functools import cached_property
-from ..const import AirPurifierFeatures
+from ..const import BIT_OFF, RangeFeatures, StateOptions, TemperatureUnit
 from ..core_async import ClientAsync
 from ..device import Device, DeviceStatus
 from ..device_info import DeviceInfo
 
-CTRL_BASIC = ["Control", "basicCtrl"]
+OVEN_TEMP_UNIT = {
+    "0": TemperatureUnit.FAHRENHEIT,
+    "1": TemperatureUnit.CELSIUS,
+    "FAHRENHEIT": TemperatureUnit.FAHRENHEIT,
+    "CELSIUS": TemperatureUnit.CELSIUS,
+}
 
-SUPPORT_OPERATION_MODE = ["SupportOpMode", "support.airState.opMode"]
-SUPPORT_WIND_STRENGTH = ["SupportWindStrength", "support.airState.windStrength"]
-SUPPORT_MFILTER = ["SupportMFilter", "support.mFilter"]
-SUPPORT_AIR_POLUTION = ["SupportAirPolution", "support.airPolution"]
-
-STATE_OPERATION = ["Operation", "airState.operation"]
-STATE_OPERATION_MODE = ["OpMode", "airState.opMode"]
-STATE_WIND_STRENGTH = ["WindStrength", "airState.windStrength"]
-
-STATE_HUMIDITY = ["SensorHumidity", "airState.humidity.current"]
-STATE_PM1 = ["SensorPM1", "airState.quality.PM1"]
-STATE_PM10 = ["SensorPM10", "airState.quality.PM10"]
-STATE_PM25 = ["SensorPM2", "airState.quality.PM2"]
-
-CMD_STATE_OPERATION = [CTRL_BASIC, "Set", STATE_OPERATION]
-CMD_STATE_OP_MODE = [CTRL_BASIC, "Set", STATE_OPERATION_MODE]
-CMD_STATE_WIND_STRENGTH = [CTRL_BASIC, "Set", STATE_WIND_STRENGTH]
-
-FILTER_TYPES = [
-    [
-        [
-            AirPurifierFeatures.FILTER_MAIN_LIFE,
-            AirPurifierFeatures.FILTER_MAIN_USE,
-            AirPurifierFeatures.FILTER_MAIN_MAX,
-        ],
-        ["FilterUse", "airState.filterMngStates.useTime"],
-        ["FilterMax", "airState.filterMngStates.maxTime"],
-        None,
-    ],
-    [
-        [
-            AirPurifierFeatures.FILTER_TOP_LIFE,
-            AirPurifierFeatures.FILTER_TOP_USE,
-            AirPurifierFeatures.FILTER_TOP_MAX,
-        ],
-        ["FilterUseTop", "airState.filterMngStates.useTimeTop"],
-        ["FilterMaxTop", "airState.filterMngStates.maxTimeTop"],
-        ["@SUPPORT_TOP_HUMIDIFILTER", "@SUPPORT_D_PLUS_TOP"],
-    ],
-    [
-        [
-            AirPurifierFeatures.FILTER_MID_LIFE,
-            AirPurifierFeatures.FILTER_MID_USE,
-            AirPurifierFeatures.FILTER_MID_MAX,
-        ],
-        ["FilterUseMiddle", "airState.filterMngStates.useTimeMiddle"],
-        ["FilterMaxMiddle", "airState.filterMngStates.maxTimeMiddle"],
-        ["@SUPPORT_MID_HUMIDIFILTER"],
-    ],
-    [
-        [
-            AirPurifierFeatures.FILTER_BOTTOM_LIFE,
-            AirPurifierFeatures.FILTER_BOTTOM_USE,
-            AirPurifierFeatures.FILTER_BOTTOM_MAX,
-        ],
-        ["FilterUseBottom", "airState.filterMngStates.useTimeBottom"],
-        ["FilterMaxBottom", "airState.filterMngStates.maxTimeBottom"],
-        ["@SUPPORT_BOTTOM_PREFILTER"],
-    ],
-    [
-        [
-            AirPurifierFeatures.FILTER_DUST_LIFE,
-            AirPurifierFeatures.FILTER_DUST_USE,
-            AirPurifierFeatures.FILTER_DUST_MAX,
-        ],
-        ["FilterUseDeodor", "airState.filterMngStates.useTimeDeodor"],
-        ["FilterMaxDeodor", "airState.filterMngStates.maxTimeDeodor"],
-        ["@SUPPORT_BOTTOM_DUSTCOLLECTION"],
-    ],
-]
+ITEM_STATE_OFF = "@OV_STATE_INITIAL_W"
 
 
-class AirPurifierOp(Enum):
-    """Whether a device is on or off."""
-
-    OFF = "@operation_off"
-    ON = "@operation_on"
-
-
-class AirPurifierMode(Enum):
-    """The operation mode for a AirPurifier device."""
-
-    CLEAN = "@AP_MAIN_MID_OPMODE_CLEAN_W"
-    SILENT = "@AP_MAIN_MID_OPMODE_SILENT_W"
-    HUMIDITY = "@AP_MAIN_MID_OPMODE_HUMIDITY_W"
-
-
-class AirPurifierFanSpeed(Enum):
-    """The fan speed for a AirPurifier device."""
-
-    LOW = "@AP_MAIN_MID_WINDSTRENGTH_LOW_W"
-    MID = "@AP_MAIN_MID_WINDSTRENGTH_MID_W"
-    HIGH = "@AP_MAIN_MID_WINDSTRENGTH_HIGH_W"
-
-
-class AirPurifierFanPreset(Enum):
-    """The fan preset for a AirPurifier device."""
-
-    POWER = "@AP_MAIN_MID_WINDSTRENGTH_POWER_W"
-    AUTO = "@AP_MAIN_MID_WINDSTRENGTH_AUTO_W"
-
-
-class AirPurifierDevice(Device):
-    """A higher-level interface for a Air Purifier."""
+class RangeDevice(Device):
+    """A higher-level interface for a cooking range."""
 
     def __init__(self, client: ClientAsync, device_info: DeviceInfo):
-        super().__init__(client, device_info, AirPurifierStatus(self))
-
-    @cached_property
-    def op_modes(self) -> list:
-        """Available operation modes."""
-        return self._get_property_values(SUPPORT_OPERATION_MODE, AirPurifierMode)
-
-    @cached_property
-    def fan_speeds(self) -> list:
-        """Available fan speeds."""
-        return self._get_property_values(SUPPORT_WIND_STRENGTH, AirPurifierFanSpeed)
-
-    @cached_property
-    def fan_presets(self) -> list:
-        """Available fan presets."""
-        return self._get_property_values(SUPPORT_WIND_STRENGTH, AirPurifierFanPreset)
-
-    async def power(self, turn_on):
-        """Turn on or off the device (according to a boolean)."""
-
-        op_mode = AirPurifierOp.ON if turn_on else AirPurifierOp.OFF
-        keys = self._get_cmd_keys(CMD_STATE_OPERATION)
-        op_value = self.model_info.enum_value(keys[2], op_mode.value)
-        await self.set(keys[0], keys[1], key=keys[2], value=op_value)
-
-    async def set_op_mode(self, mode):
-        """Set the device's operating mode to an `OpMode` value."""
-
-        if mode not in self.op_modes:
-            raise ValueError(f"Invalid operating mode: {mode}")
-        keys = self._get_cmd_keys(CMD_STATE_OP_MODE)
-        mode_value = self.model_info.enum_value(keys[2], AirPurifierMode[mode].value)
-        await self.set(keys[0], keys[1], key=keys[2], value=mode_value)
-
-    async def set_fan_speed(self, speed):
-        """Set the fan speed to a value from the `AirPurifierFanSpeed` enum."""
-
-        if speed not in self.fan_speeds:
-            raise ValueError(f"Invalid fan speed: {speed}")
-        keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
-        speed_value = self.model_info.enum_value(
-            keys[2], AirPurifierFanSpeed[speed].value
-        )
-        await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
-
-    async def set_fan_preset(self, preset):
-        """Set the fan preset to a value from the `AirPurifierFanPreset` enum."""
-
-        if preset not in self.fan_presets:
-            raise ValueError(f"Invalid fan preset: {preset}")
-        keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
-        speed_value = self.model_info.enum_value(
-            keys[2], AirPurifierFanPreset[preset].value
-        )
-        await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
-
-    async def set(
-        self, ctrl_key, command, *, key=None, value=None, data=None, ctrl_path=None
-    ):
-        """Set a device's control for `key` to `value`."""
-        await super().set(
-            ctrl_key, command, key=key, value=value, data=data, ctrl_path=ctrl_path
-        )
-        if key is not None and self._status:
-            self._status.update_status(key, value)
+        super().__init__(client, device_info, RangeStatus(self))
 
     def reset_status(self):
-        self._status = AirPurifierStatus(self)
+        self._status = RangeStatus(self)
         return self._status
 
-    async def poll(self) -> AirPurifierStatus | None:
+    async def poll(self) -> RangeStatus | None:
         """Poll the device's current state."""
 
-        res = await self._device_poll()
+        res = await self._device_poll("ovenState")
         if not res:
             return None
 
-        self._status = AirPurifierStatus(self, res)
+        self._status = RangeStatus(self, res)
         return self._status
 
 
-class AirPurifierStatus(DeviceStatus):
-    """Higher-level information about a Air Purifier's current status."""
+class RangeStatus(DeviceStatus):
+    """
+    Higher-level information about an range's current status.
 
-    _device: AirPurifierDevice
+    :param device: The Device instance.
+    :param data: JSON data from the API.
+    """
 
-    def __init__(self, device: AirPurifierDevice, data: dict | None = None):
+    _device: RangeDevice
+
+    def __init__(self, device: RangeDevice, data: dict | None = None):
         """Initialize device status."""
         super().__init__(device, data)
-        self._operation = None
+        self._oven_temp_unit = None
+        self._oven_target_temps: list | None = None
 
-    def _get_operation(self):
-        """Get current operation."""
-        if self._operation is None:
-            key = self._get_state_key(STATE_OPERATION)
-            operation = self.lookup_enum(key, True)
-            if not operation:
-                return None
-            self._operation = operation
-        try:
-            return AirPurifierOp(self._operation)
-        except ValueError:
+    def _get_target_temps(self):
+        """Get oven target temps."""
+        if self._oven_target_temps is not None:
+            return
+        lower = self._get_oven_lower_target_temp()
+        upper = self._get_oven_upper_target_temp()
+        self._oven_target_temps = [lower, upper]
+
+    def _get_oven_lower_target_temp(self):
+        """Return oven lower target temperature."""
+        if (status := self._get_bit_target_temp("LowerTargetTemp")) is not None:
+            return status or None
+
+        unit = self._get_oven_temp_unit()
+        if unit == TemperatureUnit.FAHRENHEIT:
+            key = "LowerTargetTemp_F"
+        elif unit == TemperatureUnit.CELSIUS:
+            key = "LowerTargetTemp_C"
+        else:
             return None
+        status = self.to_int_or_none(self._data.get(key))
+        if not status:  # 0 means not available
+            status = None
+        return status
 
-    def update_status(self, key, value):
-        """Update device status."""
-        if not super().update_status(key, value):
-            return False
-        if key in STATE_OPERATION:
-            self._operation = None
-        return True
+    def _get_oven_upper_target_temp(self):
+        """Return oven upper target temperature."""
+        if (status := self._get_bit_target_temp("UpperTargetTemp")) is not None:
+            return status or None
+
+        unit = self._get_oven_temp_unit()
+        if unit == TemperatureUnit.FAHRENHEIT:
+            key = "UpperTargetTemp_F"
+        elif unit == TemperatureUnit.CELSIUS:
+            key = "UpperTargetTemp_C"
+        else:
+            return None
+        status = self.to_int_or_none(self._data.get(key))
+        if not status:  # 0 means not available
+            status = None
+        return status
+
+    def _get_oven_temp_unit(self):
+        """Get the used temperature unit."""
+        if not self._oven_temp_unit:
+            oven_temp_unit = self.lookup_enum("MonTempUnit")
+            if not oven_temp_unit:
+                self._oven_temp_unit = StateOptions.NONE
+            else:
+                self._oven_temp_unit = OVEN_TEMP_UNIT.get(
+                    oven_temp_unit, TemperatureUnit.CELSIUS
+                )
+        return self._oven_temp_unit
+
+    def _get_bit_target_temp(self, key: str):
+        """Get the target temperature coded as bits."""
+        if self.is_info_v2 or key not in self._data:
+            return None
+        if not (bit_name := self._device.model_info.bit_name(key, 0)):
+            return None
+        byte_val = int(self._data[key])
+        target_temp = self._device.model_info.bit_value(key, bit_name, byte_val)
+        if target_temp is None:
+            return None
+        if "MonTempUnit" not in self._data:
+            temp_unit = self._device.model_info.bit_value(key, "MonTempUnit", byte_val)
+            if temp_unit is not None:
+                self._data["MonTempUnit"] = str(temp_unit)
+                self._oven_temp_unit = None
+                self._get_oven_temp_unit()
+
+        return target_temp
 
     @property
     def is_on(self):
         """Return if device is on."""
-        op_mode = self._get_operation()
-        if not op_mode:
-            return False
-        return op_mode != AirPurifierOp.OFF
+        return self.is_cooktop_on or self.is_oven_on
 
     @property
-    def operation(self):
-        """Return current device operation."""
-        op_mode = self._get_operation()
-        if not op_mode:
-            return None
-        return op_mode.name
+    def oven_temp_unit(self):
+        """Return used temperature unit."""
+        self._get_target_temps()
+        return self._get_oven_temp_unit()
 
     @property
-    def operation_mode(self):
-        """Return current device operation mode."""
-        key = self._get_state_key(STATE_OPERATION_MODE)
-        if (value := self.lookup_enum(key, True)) is None:
-            return None
-        try:
-            return AirPurifierMode(value).name
-        except ValueError:
-            return None
+    def is_cooktop_on(self):
+        """Return if cooktop is on."""
+        for feature in [
+            RangeFeatures.COOKTOP_CENTER_STATE,
+            RangeFeatures.COOKTOP_LEFT_FRONT_STATE,
+            RangeFeatures.COOKTOP_LEFT_REAR_STATE,
+            RangeFeatures.COOKTOP_RIGHT_FRONT_STATE,
+            RangeFeatures.COOKTOP_RIGHT_REAR_STATE,
+        ]:
+            res = self.device_features.get(feature)
+            if res and res != StateOptions.OFF:
+                return True
+        return False
 
     @property
-    def fan_speed(self):
-        """Return current fan speed."""
-        key = self._get_state_key(STATE_WIND_STRENGTH)
-        if (value := self.lookup_enum(key, True)) is None:
+    def cooktop_left_front_state(self):
+        """Return left front cooktop state."""
+        # For some cooktops (maybe depending on firmware or model),
+        # the five burners do not report individual status.
+        # Instead, the cooktop_left_front reports aggregated status for all burners.
+        status = self.lookup_enum("LFState")
+        if status is None:
             return None
-        try:
-            return AirPurifierFanSpeed(value).name
-        except ValueError:
-            return None
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.COOKTOP_LEFT_FRONT_STATE, status)
 
     @property
-    def fan_preset(self):
-        """Return current fan preset."""
-        key = self._get_state_key(STATE_WIND_STRENGTH)
-        if (value := self.lookup_enum(key, True)) is None:
+    def cooktop_left_rear_state(self):
+        """Return left rear cooktop state."""
+        status = self.lookup_enum("LRState")
+        if status is None:
             return None
-        try:
-            return AirPurifierFanPreset(value).name
-        except ValueError:
-            return None
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.COOKTOP_LEFT_REAR_STATE, status)
 
     @property
-    def current_humidity(self):
-        """Return current humidity."""
-        support_key = self._get_state_key(SUPPORT_AIR_POLUTION)
-        if (
-            self._device.model_info.enum_value(support_key, "@SENSOR_HUMID_SUPPORT")
-            is None
-        ):
+    def cooktop_center_state(self):
+        """Return center cooktop state."""
+        status = self.lookup_enum("CenterState")
+        if status is None:
             return None
-        key = self._get_state_key(STATE_HUMIDITY)
-        if (value := self.to_int_or_none(self.lookup_range(key))) is None:
-            return None
-        return self._update_feature(AirPurifierFeatures.HUMIDITY, value, False)
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.COOKTOP_CENTER_STATE, status)
 
     @property
-    def pm1(self):
-        """Return Air PM1 value."""
-        support_key = self._get_state_key(SUPPORT_AIR_POLUTION)
-        if self._device.model_info.enum_value(support_key, "@PM1_0_SUPPORT") is None:
+    def cooktop_right_front_state(self):
+        """Return right front cooktop state."""
+        status = self.lookup_enum("RFState")
+        if status is None:
             return None
-        key = self._get_state_key(STATE_PM1)
-        if (value := self.lookup_range(key)) is None:
-            return None
-        return self._update_feature(AirPurifierFeatures.PM1, value, False)
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.COOKTOP_RIGHT_FRONT_STATE, status)
 
     @property
-    def pm10(self):
-        """Return Air PM10 value."""
-        support_key = self._get_state_key(SUPPORT_AIR_POLUTION)
-        if self._device.model_info.enum_value(support_key, "@PM10_SUPPORT") is None:
+    def cooktop_right_rear_state(self):
+        """Return right rear cooktop state."""
+        status = self.lookup_enum("RRState")
+        if status is None:
             return None
-        key = self._get_state_key(STATE_PM10)
-        if (value := self.lookup_range(key)) is None:
-            return None
-        return self._update_feature(AirPurifierFeatures.PM10, value, False)
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.COOKTOP_RIGHT_REAR_STATE, status)
 
     @property
-    def pm25(self):
-        """Return Air PM2.5 value."""
-        support_key = self._get_state_key(SUPPORT_AIR_POLUTION)
-        if self._device.model_info.enum_value(support_key, "@PM2_5_SUPPORT") is None:
-            return None
-        key = self._get_state_key(STATE_PM25)
-        if (value := self.lookup_range(key)) is None:
-            return None
-        return self._update_feature(AirPurifierFeatures.PM25, value, False)
+    def is_oven_on(self):
+        """Return if oven is on."""
+        for feature in [
+            RangeFeatures.OVEN_LOWER_STATE,
+            RangeFeatures.OVEN_UPPER_STATE,
+        ]:
+            res = self.device_features.get(feature)
+            if res and res != StateOptions.OFF:
+                return True
+        return False
 
     @property
-    def filters_life(self):
-        """Return percentage status for all filters."""
-        result = {}
+    def oven_lower_state(self):
+        """Return oven lower state."""
+        status = self.lookup_enum("LowerOvenState")
+        if status is None:
+            return None
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.OVEN_LOWER_STATE, status)
 
-        # Get the filter feature key
-        support_key = self._get_state_key(SUPPORT_MFILTER)
+    @property
+    def oven_lower_mode(self):
+        """Return oven lower mode."""
+        status = self.lookup_enum("LowerCookMode")
+        if status is None:
+            return None
+        return self._update_feature(RangeFeatures.OVEN_LOWER_MODE, status)
 
-        for filter_def in FILTER_TYPES:
-            status = self._get_filter_life(
-                filter_def[1],
-                filter_def[2],
-                filter_def[3],
-                support_key,
-                use_time_inverted=True,
-            )
-            if status is not None:
-                for index, feat in enumerate(filter_def[0]):
-                    if index >= len(status):
-                        break
-                    self._update_feature(feat, status[index], False)
-                    result[feat] = status[index]
+    @property
+    def oven_upper_state(self):
+        """Return oven upper state."""
+        status = self.lookup_enum("UpperOvenState")
+        if status is None:
+            return None
+        if status == ITEM_STATE_OFF:
+            status = BIT_OFF
+        return self._update_feature(RangeFeatures.OVEN_UPPER_STATE, status)
 
-        return result
+    @property
+    def oven_upper_mode(self):
+        """Return oven upper mode."""
+        status = self.lookup_enum("UpperCookMode")
+        if status is None:
+            return None
+        return self._update_feature(RangeFeatures.OVEN_UPPER_MODE, status)
+
+    @property
+    def oven_lower_target_temp(self):
+        """Return oven lower target temperature."""
+        self._get_target_temps()
+        return self._oven_target_temps[0]
+
+    @property
+    def oven_upper_target_temp(self):
+        """Return oven upper target temperature."""
+        self._get_target_temps()
+        return self._oven_target_temps[1]
+
+    @property
+    def oven_lower_current_temp(self):
+        """Return oven lower current temperature."""
+        unit = self.oven_temp_unit
+        if unit == TemperatureUnit.FAHRENHEIT:
+            key = "LowerCookTemp_F"
+        elif unit == TemperatureUnit.CELSIUS:
+            key = "LowerCookTemp_C"
+        else:
+            return None
+        status = self.to_int_or_none(self._data.get(key))
+        if not status:  # 0 means not available
+            status = None
+        return self._update_feature(
+            RangeFeatures.OVEN_LOWER_CURRENT_TEMP, status, False, allow_none=True
+        )
+
+    @property
+    def oven_upper_current_temp(self):
+        """Return oven upper current temperature."""
+        unit = self.oven_temp_unit
+        if unit == TemperatureUnit.FAHRENHEIT:
+            key = "UpperCookTemp_F"
+        elif unit == TemperatureUnit.CELSIUS:
+            key = "UpperCookTemp_C"
+        else:
+            return None
+        status = self.to_int_or_none(self._data.get(key))
+        if not status:  # 0 means not available
+            status = None
+        return self._update_feature(
+            RangeFeatures.OVEN_UPPER_CURRENT_TEMP, status, False, allow_none=True
+        )
 
     def _update_features(self):
         _ = [
-            self.current_humidity,
-            self.pm1,
-            self.pm10,
-            self.pm25,
-            self.filters_life,
+            self.cooktop_left_front_state,
+            self.cooktop_left_rear_state,
+            self.cooktop_center_state,
+            self.cooktop_right_front_state,
+            self.cooktop_right_rear_state,
+            self.oven_lower_state,
+            self.oven_lower_mode,
+            self.oven_lower_current_temp,
+            self.oven_upper_state,
+            self.oven_upper_mode,
+            self.oven_upper_current_temp,
         ]
