@@ -65,16 +65,16 @@ HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
 }
 
 FAN_MODE_LOOKUP: dict[str, str] = {
-    ACFanSpeedRAC.자동.name: FAN_AUTO,
-    ACFanSpeedRAC.강풍.name: FAN_HIGH,
-    ACFanSpeedRAC.약풍.name: FAN_LOW,
-    ACFanSpeedRAC.중풍.name: FAN_MEDIUM,
-    ACFanSpeedRAC.자연풍.name: FAN_DIFFUSE,
-    ACFanSpeedPAC.자동_자동.name: FAN_AUTO,
-    ACFanSpeedPAC.강풍_강풍.name: FAN_HIGH,
-    ACFanSpeedPAC.약풍_약풍.name: FAN_LOW,
-    ACFanSpeedPAC.중풍_중풍.name: FAN_MEDIUM,
-    ACFanSpeedPAC.자연풍_자연풍.name: FAN_DIFFUSE,
+    ACFanSpeedRAC."자동".name: FAN_AUTO,
+    ACFanSpeedRAC."강풍".name: FAN_HIGH,
+    ACFanSpeedRAC."약풍".name: FAN_LOW,
+    ACFanSpeedRAC."중풍".name: FAN_MEDIUM,
+    ACFanSpeedRAC."자연풍".name: FAN_DIFFUSE,
+    ACFanSpeedPAC."자동_자동".name: FAN_AUTO,
+    ACFanSpeedPAC."강풍_강풍".name: FAN_HIGH,
+    ACFanSpeedPAC."약풍_약풍".name: FAN_LOW,
+    ACFanSpeedPAC."중풍_중풍".name: FAN_MEDIUM,
+    ACFanSpeedPAC."자연풍_자연풍".name: FAN_DIFFUSE,
 }
 
 FAN_MODE_REVERSE_LOOKUP = {v: k for k, v in FAN_MODE_LOOKUP.items()}
