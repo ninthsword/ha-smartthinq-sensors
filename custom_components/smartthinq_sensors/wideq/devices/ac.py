@@ -649,7 +649,8 @@ class AirConditionerDevice(Device):
         if not self._is_mode_supported(SUPPORT_VANE_HSWING):
             return []
         return self._get_property_values(STATE_WDIR_HSWING, ACHSwingModeDevice)
-     def vertical_swing_modes(self):
+        
+    def vertical_swing_modes(self):
         """Return a list of available horizontal swing modes."""
                                                                                                 
         if not self._is_mode_supported(SUPPORT_VANE_VSWING):
