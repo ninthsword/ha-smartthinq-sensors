@@ -1,6 +1,6 @@
 """LG SmartThinQ constants."""
 
-from .core_enum import StrEnum
+from .backports.enum import StrEnum
 
 # default core settings
 DEFAULT_COUNTRY = "US"
@@ -46,7 +46,7 @@ class AirConditionerFeatures(StrEnum):
     MODE_SMARTCARE = "mode_smartcare"                          
     MODE_LONGPOWER = "mode_longpower"                          
     MODE_POWERSAVE = "mode_powersave"                          
-    MODE_AUTODRY = "mode_autodry"                              
+    MODE_AUTODRY = "mode_autodry"                                                                                            
     MODE_AWHP_SILENT = "mode_awhp_silent"
     MODE_JET = "mode_jet"
     RESERVATION_SLEEP_TIME = "reservation_sleep_time"
@@ -85,7 +85,7 @@ class DehumidifierFeatures(StrEnum):
     HUMIDITY = "humidity"
     TARGET_HUMIDITY = "target_humidity"
     WATER_TANK_FULL = "water_tank_full"
-    MODE_AIRREMOVAL = "mode_airremoval"
+    MODE_AIRREMOVAL = "mode_airremoval"                                       
 
 
 class RangeFeatures(StrEnum):
@@ -127,7 +127,6 @@ class WashDeviceFeatures(StrEnum):
     DELAYSTART = "delay_start"
     DETERGENT = "detergent"
     DETERGENTLOW = "detergent_low"
-    DOORCLOSE = "door_close"
     DOORLOCK = "door_lock"
     DOOROPEN = "door_open"
     DRYLEVEL = "dry_level"
@@ -141,6 +140,7 @@ class WashDeviceFeatures(StrEnum):
     HIGHTEMP = "high_temp"
     MEDICRINSE = "medic_rinse"
     NIGHTDRY = "night_dry"
+    PRESTEAM = "pre_steam"
     PREWASH = "pre_wash"
     PRE_STATE = "pre_state"
     PROCESS_STATE = "process_state"
@@ -169,3 +169,24 @@ class WaterHeaterFeatures(StrEnum):
 
     ENERGY_CURRENT = "energy_current"
     HOT_WATER_TEMP = "hot_water_temperature"
+
+
+class MicroWaveFeatures(StrEnum):
+    """Features for LG MicroWave devices."""
+
+    CLOCK_DISPLAY = "clock_display"
+    DISPLAY_SCROLL_SPEED = "display_scroll_speed"
+    LIGHT_MODE = "light_mode"
+    OVEN_UPPER_STATE = "oven_upper_state"
+    OVEN_UPPER_MODE = "oven_upper_mode"
+    SOUND = "sound"
+    VENT_SPEED = "vent_speed"
+    WEIGHT_UNIT = "weight_unit"
+
+
+class HoodFeatures(StrEnum):
+    """Features for LG Hood devices."""
+
+    LIGHT_MODE = "light_mode"
+    HOOD_STATE = "hood_state"
+    VENT_SPEED = "vent_speed"

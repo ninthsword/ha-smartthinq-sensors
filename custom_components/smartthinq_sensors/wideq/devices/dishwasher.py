@@ -1,4 +1,5 @@
 """------------------for DishWasher"""
+
 from __future__ import annotations
 
 import logging
@@ -8,11 +9,8 @@ from ..core_async import ClientAsync
 from ..device import Device, DeviceStatus
 from ..device_info import DeviceInfo
 
-STATE_DISHWASHER_POWER_OFF = "@DW_STATE_POWER_OFF_W"
-STATE_DISHWASHER_END = [
-    "@DW_STATE_END_W",
-    "@DW_STATE_COMPLETE_W",
-]
+STATE_DISHWASHER_POWER_OFF = "STATE_POWER_OFF"
+STATE_DISHWASHER_END = ["STATE_END", "STATE_COMPLETE"]
 STATE_DISHWASHER_ERROR_OFF = "OFF"
 STATE_DISHWASHER_ERROR_NO_ERROR = [
     "ERROR_NOERROR",
@@ -31,8 +29,10 @@ BIT_FEATURES = {
     WashDeviceFeatures.EXTRADRY: ["ExtraDry", "extraDry"],
     WashDeviceFeatures.HIGHTEMP: ["HighTemp", "highTemp"],
     WashDeviceFeatures.NIGHTDRY: ["NightDry", "nightDry"],
+    WashDeviceFeatures.PRESTEAM: ["PreSteam", "preSteam"],
     WashDeviceFeatures.RINSEREFILL: ["RinseRefill", "rinseRefill"],
     WashDeviceFeatures.SALTREFILL: ["SaltRefill", "saltRefill"],
+    WashDeviceFeatures.STEAM: ["Steam", "steam"],
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +43,11 @@ class DishWasherDevice(Device):
 
     def __init__(self, client: ClientAsync, device_info: DeviceInfo):
         super().__init__(client, device_info, DishWasherStatus(self))
+
+    @property
+    def is_run_completed(self) -> bool:
+        """Return device run completed state."""
+        return self._status.is_run_completed if self._status else False
 
     def reset_status(self):
         self._status = DishWasherStatus(self)
@@ -66,6 +71,8 @@ class DishWasherStatus(DeviceStatus):
     :param device: The Device instance.
     :param data: JSON data from the API.
     """
+
+    _device: DishWasherDevice
 
     def __init__(self, device: DishWasherDevice, data: dict | None = None):
         """Initialize device status."""
@@ -108,15 +115,16 @@ class DishWasherStatus(DeviceStatus):
     def is_on(self):
         """Return if device is on."""
         run_state = self._get_run_state()
-        return run_state != STATE_DISHWASHER_POWER_OFF
+        return STATE_DISHWASHER_POWER_OFF not in run_state
 
     @property
     def is_run_completed(self):
         """Return if run is completed."""
         run_state = self._get_run_state()
         process = self._get_process()
-        if run_state in STATE_DISHWASHER_END or (
-            run_state == STATE_DISHWASHER_POWER_OFF and process in STATE_DISHWASHER_END
+        if any(state in run_state for state in STATE_DISHWASHER_END) or (
+            STATE_DISHWASHER_POWER_OFF in run_state
+            and any(state in process for state in STATE_DISHWASHER_END)
         ):
             return True
         return False
@@ -154,53 +162,49 @@ class DishWasherStatus(DeviceStatus):
         smart_course = self.lookup_reference(course_key, ref_key="name")
         return self._device.get_enum_text(smart_course)
 
+    def _get_time_info(self, keys: list[str]):
+        """Return time info for specific key."""
+        if self.is_info_v2:
+            if not self.is_on:
+                return 0
+            return self.int_or_none(self._data.get(keys[1]))
+        return self._data.get(keys[0])
+
     @property
     def initialtime_hour(self):
         """Return hour initial time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("initialTimeHour"))
-        return self._data.get("Initial_Time_H")
+        return self._get_time_info(["Initial_Time_H", "initialTimeHour"])
 
     @property
     def initialtime_min(self):
         """Return minute initial time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("initialTimeMinute"))
-        return self._data.get("Initial_Time_M")
+        return self._get_time_info(["Initial_Time_M", "initialTimeMinute"])
 
     @property
     def remaintime_hour(self):
         """Return hour remaining time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("remainTimeHour"))
-        return self._data.get("Remain_Time_H")
+        return self._get_time_info(["Remain_Time_H", "remainTimeHour"])
 
     @property
     def remaintime_min(self):
         """Return minute remaining time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("remainTimeMinute"))
-        return self._data.get("Remain_Time_M")
+        return self._get_time_info(["Remain_Time_M", "remainTimeMinute"])
 
     @property
     def reservetime_hour(self):
         """Return hour reserved time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("reserveTimeHour"))
-        return self._data.get("Reserve_Time_H")
+        return self._get_time_info(["Reserve_Time_H", "reserveTimeHour"])
 
     @property
     def reservetime_min(self):
         """Return minute reserved time."""
-        if self.is_info_v2:
-            return self.int_or_none(self._data.get("reserveTimeMinute"))
-        return self._data.get("Reserve_Time_M")
+        return self._get_time_info(["Reserve_Time_M", "reserveTimeMinute"])
 
     @property
     def run_state(self):
         """Return current run state."""
         run_state = self._get_run_state()
-        if run_state == STATE_DISHWASHER_POWER_OFF:
+        if STATE_DISHWASHER_POWER_OFF in run_state:
             run_state = StateOptions.NONE
         return self._update_feature(WashDeviceFeatures.RUN_STATE, run_state)
 
@@ -208,6 +212,8 @@ class DishWasherStatus(DeviceStatus):
     def process_state(self):
         """Return current process state."""
         process = self._get_process()
+        if not self.is_on:
+            process = StateOptions.NONE
         return self._update_feature(WashDeviceFeatures.PROCESS_STATE, process)
 
     @property
