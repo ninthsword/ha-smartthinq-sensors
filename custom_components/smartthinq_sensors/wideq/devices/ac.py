@@ -1559,7 +1559,7 @@ class AirConditionerStatus(DeviceStatus):
         return self._airmon_on
 
     @property
-    def PM1(self):
+    def pm1(self):
         """Return current PM1.0."""
         key = self._get_state_key(STATE_AIRPOLUTION_PM1)
         if (value := self.to_int_or_none(self.lookup_range(key))) is None:
@@ -1567,7 +1567,7 @@ class AirConditionerStatus(DeviceStatus):
         return self._update_feature(AirConditionerFeatures.PM1, value, False)
 
     @property
-    def PM2(self):
+    def pm2(self):
         """Return current humidity."""
         key = self._get_state_key(STATE_AIRPOLUTION_PM2)
         if (value := self.to_int_or_none(self.lookup_range(key))) is None:
@@ -1575,7 +1575,7 @@ class AirConditionerStatus(DeviceStatus):
         return self._update_feature(AirConditionerFeatures.PM2, value, False)
     
     @property
-    def PM10(self):
+    def pm10(self):
         """Return current humidity."""
         key = self._get_state_key(STATE_AIRPOLUTION_PM10)
         if (value := self.to_int_or_none(self.lookup_range(key))) is None:
@@ -1689,9 +1689,9 @@ class AirConditionerStatus(DeviceStatus):
             self.energy_current,
             self.filters_life,
             self.humidity,
-            self.PM10,
-            self.PM2,
-            self.PM1,
+            self.pm10,
+            self.pm2,
+            self.pm1,
             self.mode_airclean,
             self.mode_icevalley,                                      
             self.mode_smartcare,                                      
