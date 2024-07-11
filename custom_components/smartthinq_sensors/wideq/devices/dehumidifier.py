@@ -101,7 +101,14 @@ class DeHumidifierDevice(Device):
             min_hum = min(range_info.min, DEFAULT_MIN_HUM)
             max_hum = max(range_info.max, DEFAULT_MAX_HUM)
         return [min_hum, max_hum]
-
+        
+    def _is_mode_supported(self, key):
+        """Check if a specific mode for support key is supported."""
+        if not isinstance(key, list):
+            return False
+        supp_key = self._get_state_key(key[0])
+        return self.model_info.enum_value(supp_key, key[1]) is not None    
+    
     @cached_property
     def op_modes(self):
         """Return a list of available operation modes."""
@@ -165,6 +172,7 @@ class DeHumidifierDevice(Device):
         keys = self._get_cmd_keys(CMD_STATE_WIND_STRENGTH)
         speed_value = self.model_info.enum_value(keys[2], DHumFanSpeed[speed].value)
         await self.set(keys[0], keys[1], key=keys[2], value=speed_value)
+        
     async def set_mode_airremoval(self, status: bool):
         """Set the Airremoval mode on or off."""
         if not self.is_mode_airremoval_supported:
@@ -174,6 +182,7 @@ class DeHumidifierDevice(Device):
         mode_key = MODE_ON if status else MODE_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
+        
     async def set_target_humidity(self, humidity):
         """Set the device's target humidity."""
 
