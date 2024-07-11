@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from copy import deepcopy
 import json
+import logging
 from numbers import Number
+
+import xmltodict
 
 from .const import BIT_OFF, BIT_ON
 
@@ -16,6 +20,8 @@ TYPE_NUMBER = "number"
 TYPE_RANGE = "range"
 TYPE_REFERENCE = "reference"
 TYPE_STRING = "string"
+
+_LOGGER = logging.getLogger(__name__)
 
 
 EnumValue = namedtuple("EnumValue", ["options"])
@@ -28,17 +34,24 @@ class ModelInfo(ABC):
     """The base abstract class for a device model's capabilities."""
 
     @staticmethod
-    def get_model_info(model_data: dict) -> ModelInfo | None:
+    def get_model_info(
+        model_data: dict, sub_device: str | None = None
+    ) -> ModelInfo | None:
         """Return the correct model info."""
-        if ModelInfoV2AC.is_valid_model_data(model_data):
+        if sub_device is not None:
+            data = {"Info": model_data["Info"], **model_data[sub_device]}
+        else:
+            data = model_data
+
+        if ModelInfoV2AC.is_valid_model_data(data):
             # this is new V2 model for AC
-            return ModelInfoV2AC(model_data)
-        if ModelInfoV1.is_valid_model_data(model_data):
+            return ModelInfoV2AC(data)
+        if ModelInfoV1.is_valid_model_data(data):
             # this is old V1 model
-            return ModelInfoV1(model_data)
-        if ModelInfoV2.is_valid_model_data(model_data):
+            return ModelInfoV1(data)
+        if ModelInfoV2.is_valid_model_data(data):
             # this is new V2 model
-            return ModelInfoV2(model_data)
+            return ModelInfoV2(data)
         return None
 
     @staticmethod
@@ -59,7 +72,7 @@ class ModelInfo(ABC):
         """Return the data dictionary"""
         if not self._data:
             return {}
-        return self._data.copy()
+        return deepcopy(self._data)
 
     @property
     @abstractmethod
@@ -107,6 +120,9 @@ class ModelInfo(ABC):
             return None
 
         options = values.options
+        if self.value_type(key) == TYPE_BOOL:
+            bool_val = options.get(value, 0)
+            return BIT_ON if bool_val else BIT_OFF
         return options.get(value, "")
 
     def enum_index(self, key, index):
@@ -119,6 +135,21 @@ class ModelInfo(ABC):
         Not very useful other than for comprehension.
         """
         return key
+
+    def enum_range_values(self, key) -> list[str] | None:
+        """Return a list from a range value."""
+        if not (values := self.value(key, [TYPE_RANGE])):
+            return None
+
+        return [str(i) for i in range(values.min, values.max + 1, values.step)]
+
+    def reference_values(self, key) -> dict | None:
+        """Look up the reference section."""
+        if not (values := self.value(key, [TYPE_REFERENCE])):
+            return None
+
+        reference: dict = values.reference
+        return reference
 
     def reference_name(self, key, value, ref_key="_comment") -> str | None:
         """Look up the friendly name for an encoded reference value."""
@@ -135,13 +166,28 @@ class ModelInfo(ABC):
             return ref_value.get("name")
         return None
 
-    def bit_name(self, key, bit_index, value) -> str | None:
-        """Look up the friendly name for an encoded bit value."""
+    def option_keys(self, subkey: str | None = None) -> list:
+        """Return a list of available option keys."""
+        return []
+
+    def bit_name(self, key, bit_index) -> str | None:
+        """Look up the friendly name for an encoded bit based on the bit index."""
         return None
 
-    def bit_value(self, key, values) -> str | None:
+    def bit_index(self, key, bit_name) -> str | None:
+        """Look up the start index for an encoded bit based on friendly name."""
+        return None
+
+    def bit_value(self, key, bit_name, value) -> int | None:
         """
         Look up the bit value for a specific key.
+        Not used in model V2.
+        """
+        return None
+
+    def option_bit_value(self, key, values, sub_key=None) -> str | None:
+        """
+        Look up the bit value for a specific option key.
         Not used in model V2.
         """
         return None
@@ -167,6 +213,11 @@ class ModelInfo(ABC):
     def decode_snapshot(self, data, key):
         """Decode status data."""
 
+    @property
+    def monitor_type(self) -> str | None:
+        """Return used monitor type."""
+        return None
+
 
 class ModelInfoV1(ModelInfo):
     """A description of a device model's capabilities for type V1."""
@@ -179,6 +230,7 @@ class ModelInfoV1(ModelInfo):
     def __init__(self, data):
         """Initialize the class."""
         super().__init__(data)
+        self._monitor_type = None
         self._bit_keys = {}
 
     @property
@@ -230,7 +282,7 @@ class ModelInfoV1(ModelInfo):
             return RangeValue(
                 data["option"]["min"],
                 data["option"]["max"],
-                data["option"].get("step", 0),
+                data["option"].get("step", 1),
             )
         if data_type == TYPE_BIT:
             bit_values = {}
@@ -244,7 +296,7 @@ class ModelInfoV1(ModelInfo):
             ref = data["option"][0]
             return ReferenceValue(self._data[ref])
         if data_type == TYPE_BOOL:
-            return EnumValue({"0": BIT_OFF, "1": BIT_ON})
+            return EnumValue({"0": 0, "1": 1})
         if data_type == TYPE_STRING:
             return None
         raise ValueError(
@@ -255,67 +307,107 @@ class ModelInfoV1(ModelInfo):
         """Get the default value, if it exists, for a given value."""
         return self._data.get("Value", {}).get(name, {}).get("default")
 
-    def bit_name(self, key, bit_index, value) -> str | None:
-        """Look up the friendly name for an encoded bit value."""
+    def option_keys(self, subkey: str | None = None) -> list:
+        """Return a list of available option keys."""
+        if not (data := self._data.get("Value")):
+            return []
+
+        opt_key = "Option"
+        if subkey:
+            opt_key = subkey + opt_key
+        ret_keys = []
+        for i in range(1, 4):
+            key_id = f"{opt_key}{str(i)}"
+            if key_id in data:
+                ret_keys.append(key_id)
+        return ret_keys
+
+    def bit_name(self, key, bit_index) -> str | None:
+        """Look up the friendly name for an encoded bit based on the bit index."""
         if not (values := self.value(key, [TYPE_BIT])):
-            return str(value)
+            return None
 
         options = values.options
-        if not self.value_type(options[bit_index]["value"]):
-            return str(value)
+        if not (bit_info := options.get(bit_index)):
+            return None
+        return bit_info["value"]
 
-        enum_options = self.value(options[bit_index]["value"]).options
-        return enum_options[value]
+    def bit_index(self, key, bit_name) -> str | None:
+        """Look up the start index for an encoded bit based on friendly name."""
+        if not (values := self.value(key, [TYPE_BIT])):
+            return None
 
-    def _get_bit_key(self, key):
-        """Get bit values for a specific key."""
+        options = values.options
+        for bit_index, bit_info in options.items():
+            if bit_info["value"] == bit_name:
+                return bit_index
 
-        def search_bit_key():
-            if not data:
-                return {}
-            for i in range(1, 4):
-                opt_key = f"Option{str(i)}"
-                option = data.get(opt_key)
-                if not option:
-                    continue
-                for opt in option.get("option", []):
-                    if key == opt.get("value", ""):
-                        start_bit = opt.get("startbit")
-                        length = opt.get("length", 1)
-                        if start_bit is None:
-                            return {}
-                        return {
-                            "option": opt_key,
-                            "startbit": start_bit,
-                            "length": length,
-                        }
-            return {}
+        return None
 
-        bit_key = self._bit_keys.get(key)
-        if bit_key is None:
-            data = self._data.get("Value")
-            bit_key = search_bit_key()
-            self._bit_keys[key] = bit_key
+    def bit_value(self, key, bit_name, value) -> int | None:
+        """Look up the bit value for a specific key."""
+        if not (values := self.value(key, [TYPE_BIT])):
+            return None
 
-        return bit_key
+        options = values.options
+        for bit_index, bit_info in options.items():
+            if bit_info["value"] == bit_name:
+                return self._get_bit_value(value, bit_index, bit_info["length"])
 
-    def bit_value(self, key, values) -> str | None:
-        """Look up the bit value for an specific key."""
-        bit_key = self._get_bit_key(key)
+        return None
+
+    def option_bit_value(self, key, values, sub_key=None) -> str | None:
+        """Look up the bit value for an specific option key."""
+        bit_key = self._get_bit_key(key, sub_key)
         if not bit_key:
             return None
         value = None if not values else values.get(bit_key["option"])
         if not value:
             return "0"
-        bit_value = int(value)
-        start_bit = bit_key["startbit"]
-        length = bit_key["length"]
+        bit_val = self._get_bit_value(
+            int(value), bit_key["startbit"], bit_key["length"]
+        )
+        return str(bit_val)
+
+    def _get_bit_key(self, key: str, sub_key: str | None = None):
+        """Get bit values for a specific key."""
+
+        def search_bit_key(option_keys: list, data: dict | None):
+            if not data:
+                return {}
+            for opt_key in option_keys:
+                if not (option := data.get(opt_key)):
+                    continue
+                for opt in option.get("option", []):
+                    if key != opt.get("value", ""):
+                        continue
+                    if (start_bit := opt.get("startbit")) is None:
+                        return {}
+                    return {
+                        "option": opt_key,
+                        "startbit": start_bit,
+                        "length": opt.get("length", 1),
+                    }
+
+            return {}
+
+        key_bit = sub_key + key if sub_key else key
+        if (bit_key := self._bit_keys.get(key_bit)) is None:
+            option_keys = self.option_keys(sub_key)
+            bit_key = search_bit_key(option_keys, self._data.get("Value"))
+            self._bit_keys[key_bit] = bit_key
+
+        return bit_key
+
+    @staticmethod
+    def _get_bit_value(value: int, start_bit: int, length: int = 1):
+        """Return bit value inside byte."""
         val = 0
         for i in range(0, length):
             bit_index = 2 ** (start_bit + i)
-            bit = 1 if bit_value & bit_index else 0
+            bit = 1 if value & bit_index else 0
             val += bit * (2**i)
-        return str(val)
+        return val
 
     @property
     def binary_control_data(self):
@@ -328,20 +420,32 @@ class ModelInfoV1(ModelInfo):
         if "ControlWifi" in self._data:
             control_data = self._data["ControlWifi"].get("action", {}).get(cmd_key)
             if control_data:
-                control = control_data.copy()  # we copy so that we can manipulate
+                control = deepcopy(control_data)  # we copy so that we can manipulate
                 if ctrl_key:
                     control["cmd"] = ctrl_key
         return control
 
     @property
+    def monitor_type(self) -> str | None:
+        """Return used monitor type."""
+        if self._monitor_type is None:
+            self._monitor_type = self._data["Monitoring"]["type"]
+        return self._monitor_type
+
+    @property
     def byte_monitor_data(self):
         """Check that type of monitoring is BINARY(BYTE)."""
-        return self._data["Monitoring"]["type"] == "BINARY(BYTE)"
+        return self.monitor_type == "BINARY(BYTE)"
 
     @property
     def hex_monitor_data(self):
         """Check that type of monitoring is BINARY(HEX)."""
-        return self._data["Monitoring"]["type"] == "BINARY(HEX)"
+        return self.monitor_type == "BINARY(HEX)"
+
+    @property
+    def xml_monitor_data(self):
+        """Check that type of monitoring is XML."""
+        return self.monitor_type == "XML"
 
     def decode_monitor_byte(self, data):
         """Decode binary byte encoded status data."""
@@ -376,10 +480,65 @@ class ModelInfoV1(ModelInfo):
             decoded[key] = str(value)
         return decoded
 
+    def decode_monitor_xml(self, data):
+        """Decode a xml that encodes status data."""
+
+        try:
+            xml_json = xmltodict.parse(data.decode("utf8"))
+        except Exception as ex:  # pylint: disable=broad-except
+            _LOGGER.warning("Failed to decode XML message: [%s] - error: %s", data, ex)
+            return None
+
+        main_tag: str | None = self._data["Monitoring"].get("tag")
+        if not main_tag or main_tag not in xml_json:
+            _LOGGER.warning(
+                "Invalid root tag [%s] for XML message: [%s]", main_tag, xml_json
+            )
+            return None
+
+        decoded = {}
+        dev_vals = xml_json[main_tag]
+        for item in self._data["Monitoring"]["protocol"]:
+            tags: str = item["tag"]
+            tag_list = tags.split(".")
+            tag_key = tag_list[0]
+            if len(tag_list) > 1:
+                value_dict: dict = dev_vals[tag_key]
+                tag_key = tag_list[1]
+            else:
+                value_dict: dict = dev_vals
+
+            if val := value_dict.get(tag_key):
+                key = item["value"]
+                if isinstance(key, list):
+                    if isinstance(val, str):
+                        sub_val = val.split(",")
+                    else:
+                        sub_val = []
+                    for sub_idx, sub_key in enumerate(key):
+                        if not isinstance(sub_key, str):
+                            continue
+                        decoded[sub_key] = (
+                            sub_val[sub_idx] if len(sub_val) > sub_idx else ""
+                        )
+
+                elif isinstance(key, str):
+                    decoded[key] = val
+
+        return decoded
+
     @staticmethod
-    def decode_monitor_json(data):
+    def decode_monitor_json(data, mon_type):
         """Decode a bytestring that encodes JSON status data."""
-        return json.loads(data.decode("utf8"))
+        try:
+            return json.loads(data.decode("utf8"))
+        except json.JSONDecodeError:
+            _LOGGER.warning(
+                "Received data with invalid format from device. Type: %s - Data: %s",
+                mon_type,
+                data,
+            )
+            return None
 
     def decode_monitor(self, data):
         """Decode status data."""
@@ -388,7 +547,9 @@ class ModelInfoV1(ModelInfo):
             return self.decode_monitor_byte(data)
         if self.hex_monitor_data:
             return self.decode_monitor_hex(data)
-        return self.decode_monitor_json(data)
+        if self.xml_monitor_data:
+            return self.decode_monitor_xml(data)
+        return self.decode_monitor_json(data, self.monitor_type)
 
     @staticmethod
     def _get_current_temp_key(key: str, data):
@@ -410,7 +571,7 @@ class ModelInfoV1(ModelInfo):
 
     def decode_snapshot(self, data, key):
         """Decode status data."""
-        if self._data["Monitoring"]["type"] != "THINQ2":
+        if self.monitor_type != "THINQ2":
             return {}
 
         if key and key not in data:
@@ -530,13 +691,18 @@ class ModelInfoV2(ModelInfo):
             )
         if data_type == TYPE_RANGE:
             return RangeValue(
-                data["valueMapping"]["min"], data["valueMapping"]["max"], 1
+                data["valueMapping"]["min"],
+                data["valueMapping"]["max"],
+                data["valueMapping"].get("step", 1),
             )
         if data_type == TYPE_REFERENCE:
             ref = data["ref"]
             return ReferenceValue(self._data.get(ref))
         if data_type == TYPE_BOOL:
-            return EnumValue({0: BIT_OFF, 1: BIT_ON})
+            if "valueMapping" in data:
+                mapping = data["valueMapping"]
+                return EnumValue({k: v.get("index", 0) for k, v in mapping.items()})
+            return EnumValue({0: 0, 1: 1})
         if data_type == TYPE_STRING:
             return None
         raise ValueError(
@@ -568,7 +734,7 @@ class ModelInfoV2(ModelInfo):
         return options.get(index, "")
 
     def target_key(self, key, value, target) -> str | None:
-        """Look up tarket key inside a value."""
+        """Look up target key inside a value."""
         if not (data := self._data_root(key)):
             return None
 
@@ -585,7 +751,7 @@ class ModelInfoV2(ModelInfo):
         if "ControlWifi" in self._data:
             control_data = self._data["ControlWifi"].get(cmd_key)
             if control_data:
-                control = control_data.copy()  # we copy so that we can manipulate
+                control = deepcopy(control_data)  # we copy so that we can manipulate
                 if ctrl_key:
                     control["ctrlKey"] = ctrl_key
         return control
