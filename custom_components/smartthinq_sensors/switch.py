@@ -178,17 +178,7 @@ MICROWAVE_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
         turn_on_fn=lambda x: x.device.set_clock_display(True),
     ),
 )
-
-
-SWITCH_ENTITIES = {
-    DeviceType.AC: AC_SWITCH,
-    DeviceType.MICROWAVE: MICROWAVE_SWITCH,
-    DeviceType.REFRIGERATOR: REFRIGERATOR_SWITCH,
-    DeviceType.DEHUMIDIFIER: DEHUMIDIFIER_SWITCH,   
-    **{dev_type: WASH_DEV_SWITCH for dev_type in WM_DEVICE_TYPES},
-}
-
-DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
+DEHUMIDIFIER_SWITCH: tuple[ThinQSwitchEntityDescription, ...] = (
     ThinQSwitchEntityDescription(
         key=DehumidifierFeatures.MODE_AIRREMOVAL,
         name="공기제균",
@@ -198,6 +188,14 @@ DEHUMIDIFIER_SWITCH: Tuple[ThinQSwitchEntityDescription, ...] = (
         available_fn=lambda x: x.is_power_on,
     ),
 )
+
+SWITCH_ENTITIES = {
+    DeviceType.AC: AC_SWITCH,
+    DeviceType.MICROWAVE: MICROWAVE_SWITCH,
+    DeviceType.REFRIGERATOR: REFRIGERATOR_SWITCH,
+    DeviceType.DEHUMIDIFIER: DEHUMIDIFIER_SWITCH,   
+    **{dev_type: WASH_DEV_SWITCH for dev_type in WM_DEVICE_TYPES},
+}
 
 def _switch_exist(
     lge_device: LGEDevice, switch_desc: ThinQSwitchEntityDescription
