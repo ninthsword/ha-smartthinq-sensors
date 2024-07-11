@@ -1,6 +1,6 @@
 Custom from [ollo69](https://github.com/ollo69/ha-smartthinq-sensors)
 
-v0.31.8-0.1
+v0.31.8-0.2
 
 # LG ThinQ Devices integration for HomeAssistant
 
@@ -14,9 +14,12 @@ Supported devices are:
 - Dishwasher
 - Dryer
 - Fan
+- Hood
+- Microwave
 - Range
 - Refrigerator
 - Styler
+- Tower Washer-Dryer
 - Washer
 - Water Heater
 
