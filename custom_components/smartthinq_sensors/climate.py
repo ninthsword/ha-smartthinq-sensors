@@ -242,6 +242,7 @@ class LGEACClimate(LGEClimate):
         self._set_hor_swing = self._support_hor_swing and not self._support_ver_swing
         self._set_ver_swing = self._support_ver_swing and not self._support_hor_swing
 
+
     def _available_hvac_modes(self) -> dict[str, HVACMode]:
         """Return available hvac modes from lookup dict."""
         if self._hvac_mode_lookup is None:
