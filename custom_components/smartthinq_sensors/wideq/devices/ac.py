@@ -22,7 +22,7 @@ SUPPORT_WIND_STRENGTH = ["WindStrength", "airState.windStrength"]   #SUPPORT_WIN
 SUPPORT_WIND_DIR = ["SupportWindDir", "support.airState.wDir"]
 SUPPORT_WIND_MODE = ["SupportWindDir", "support.airState.wMode"]
 SUPPORT_DUCT_ZONE = ["SupportDuctZoneType", "support.airState.ductZone.type"]
-SUPPORT_LIGHT = ["SupportLight", "support.light"]
+#SUPPORT_LIGHT = ["SupportLight", "support.light"]
 SUPPORT_VANE_HSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_LEFT_RIGHT_W"]
 SUPPORT_VANE_VSWING = [SUPPORT_WIND_DIR, "@AC_MAIN_WIND_DIRECTION_UP_DOWN_W"]
 SUPPORT_ICEVALLEY = [SUPPORT_WIND_MODE, "@AC_MAIN_WIND_MODE_ICEVALLEY_W"]
@@ -56,8 +56,8 @@ SUPPORT_AUTODRY_RAC = [SUPPORT_RAC_MODE, "@AUTODRY"]
 SUPPORT_POWERSAVE_RAC = [SUPPORT_RAC_MODE, "@ENERGYSAVING"]
 
 SUPPORT_HOT_WATER = [SUPPORT_PAC_MODE, ["@HOTWATER", "@HOTWATER_ONLY"]]
-SUPPORT_LIGHT_SWITCH = [SUPPORT_LIGHT, "@RAC_88_DISPLAY_CONTROL"]
-SUPPORT_LIGHT_INV_SWITCH = [SUPPORT_LIGHT, "@BRIGHTNESS_CONTROL"]
+#SUPPORT_LIGHT_SWITCH = [SUPPORT_LIGHT, "@RAC_88_DISPLAY_CONTROL"]
+#SUPPORT_LIGHT_INV_SWITCH = [SUPPORT_LIGHT, "@BRIGHTNESS_CONTROL"]
 #SUPPORT_PM = [
 #    SUPPORT_AIR_POLUTION,
 #    ["@PM1_0_SUPPORT", "@PM2_5_SUPPORT", "@PM10_SUPPORT"],
@@ -176,10 +176,10 @@ TEMP_STEP_HALF = 0.5
 
 ADD_FEAT_POLL_INTERVAL = 300  # 5 minutes
 
-LIGHT_DISPLAY_OFF = ["@RAC_LED_OFF", "@AC_LED_OFF_W"]
-LIGHT_DISPLAY_ON = ["@RAC_LED_ON", "@AC_LED_ON_W"]
-LIGHT_DISPLAY_INV_OFF = ["@RAC_LED_ON", "@AC_LED_OFF_W"]
-LIGHT_DISPLAY_INV_ON = ["@RAC_LED_OFF", "@AC_LED_ON_W"]
+LIGHTING_DISPLAY_OFF = "0"
+LIGHTING_DISPLAY_ON = "1"
+#LIGHT_DISPLAY_INV_OFF = ["@RAC_LED_ON", "@AC_LED_OFF_W"]
+#LIGHT_DISPLAY_INV_ON = ["@RAC_LED_OFF", "@AC_LED_ON_W"]
 
 MODE_OFF = "@OFF"
 MODE_ON = "@ON"
@@ -298,7 +298,8 @@ class ACHStepMode(Enum):
     좌측집중 = "@13"
     중앙집중 = "@24"
     우측집중 = "@35"  
-    회전 = "@100"  
+    회전 = "@100"
+    
 class ACVSwingMode(Enum):                       
     """The swing mode for an AC/HVAC device."""
 
@@ -318,6 +319,7 @@ class ACHSwingModeDevice(Enum):
 
     정지 = "@OFF"
     회전 = "@ALL_ON"
+    
 class JetMode(Enum):
     """Possible JET modes."""
 
@@ -634,7 +636,7 @@ class AirConditionerDevice(Device):
         if not self._is_mode_supported(SUPPORT_VANE_HSTEP):
             return []
         return self._get_property_values(STATE_WDIR_HSTEP, ACHStepMode)
-
+        
     @cached_property
     def vertical_step_modes(self):
         """Return a list of available vertical step modes."""
@@ -649,16 +651,16 @@ class AirConditionerDevice(Device):
         if not self._is_mode_supported(SUPPORT_VANE_HSWING):
             return []
         return self._get_property_values(STATE_WDIR_HSWING, ACHSwingModeDevice)
-        
+     
+    @cached_property
     def vertical_swing_modes(self):
         """Return a list of available horizontal swing modes."""
                                                                                                 
         if not self._is_mode_supported(SUPPORT_VANE_VSWING):
             return []
         return self._get_property_values(STATE_WDIR_VSWING, ACVSwingMode)
-                                                                                       
-
-    @property
+    
+    @property			 
     def temperature_unit(self):
         """Return the unit used for temperature."""
         return self._temperature_unit
@@ -705,14 +707,14 @@ class AirConditionerDevice(Device):
             self._is_mode_smartcare_supported = self._is_mode_supported(SUPPORT_SMARTCARE)        
         return self._is_mode_smartcare_supported
 
-    @cached_property
-    def supported_ligth_modes(self):
-        """Return light switch modes supported."""
-        if self._is_mode_supported(SUPPORT_LIGHT_SWITCH):
-            return {MODE_OFF: LIGHT_DISPLAY_OFF, MODE_ON: LIGHT_DISPLAY_ON}
-        if self._is_mode_supported(SUPPORT_LIGHT_INV_SWITCH):
-            return {MODE_OFF: LIGHT_DISPLAY_INV_OFF, MODE_ON: LIGHT_DISPLAY_INV_ON}
-        return None
+#    @cached_property
+#    def supported_ligth_modes(self):
+#        """Return light switch modes supported."""
+#        if self._is_mode_supported(SUPPORT_LIGHT_SWITCH):
+#            return {MODE_OFF: LIGHT_DISPLAY_OFF, MODE_ON: LIGHT_DISPLAY_ON}
+#        if self._is_mode_supported(SUPPORT_LIGHT_INV_SWITCH):
+#            return {MODE_OFF: LIGHT_DISPLAY_INV_OFF, MODE_ON: LIGHT_DISPLAY_INV_ON}
+#        return None
 
     @cached_property                                                                                
     def is_mode_longpower_supported(self):                                                        
@@ -772,14 +774,17 @@ class AirConditionerDevice(Device):
     @cached_property
     def supported_mode_jet(self):
         """Return if Jet mode is supported."""
-        supported = JetModeSupport.NONE
-        if self._is_mode_supported(SUPPORT_JET_COOL):
-            supported = JetModeSupport.COOL
-        if self._is_mode_supported(SUPPORT_JET_HEAT):
-            if supported == JetModeSupport.COOL:
-                return JetModeSupport.BOTH
-            return JetModeSupport.HEAT
-        return supported
+        if self._supported_mode_jet is None:
+            supported = JetModeSupport.NONE
+            if self._is_mode_supported(SUPPORT_JET_COOL):
+                supported = JetModeSupport.COOL
+            if self._is_mode_supported(SUPPORT_JET_HEAT):
+                if supported == JetModeSupport.COOL:
+                    supported = JetModeSupport.BOTH
+                else:
+                    supported = JetModeSupport.HEAT
+            self._supported_mode_jet = supported
+        return self._supported_mode_jet
 
     @property
     def is_mode_jet_available(self):
@@ -877,14 +882,13 @@ class AirConditionerDevice(Device):
         step_mode = self.model_info.enum_value(keys[2], ACHStepMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=step_mode)
 
-    async def horizontal_swing_mode(self, value: bool):
-        """Set the horizontal swing on or off."""
-        if not self._is_mode_supported(SUPPORT_VANE_HSWING):
-            raise ValueError("Horizontal swing mode not supported")
-        mode = MODE_ON if value else MODE_OFF
-        keys = self._get_cmd_keys(CMD_STATE_WDIR_HSWING)
-        if (swing_mode := self.model_info.enum_value(keys[2], mode)) is None:
+    async def set_horizontal_swing_mode(self, mode):  
+        """Set the horizontal swing to a value from the `ACHSwingMode` enum."""  
+                                                   
+        if mode not in self.horizontal_swing_modes:
             raise ValueError(f"Invalid horizontal swing mode: {mode}")
+        keys = self._get_cmd_keys(CMD_STATE_WDIR_HSWING)
+        swing_mode = self.model_info.enum_value(keys[2], ACHSwingMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=swing_mode)
 
     async def set_vertical_step_mode(self, mode):
@@ -895,14 +899,12 @@ class AirConditionerDevice(Device):
         step_mode = self.model_info.enum_value(keys[2], ACVStepMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=step_mode)
 
-    async def vertical_swing_mode(self, value: bool):
-        """Set the vertical swing on or off."""
-        if not self._is_mode_supported(SUPPORT_VANE_VSWING):
-            raise ValueError("Vertical swing mode not supported")
-        mode = MODE_ON if value else MODE_OFF
-        keys = self._get_cmd_keys(CMD_STATE_WDIR_VSWING)
-        if (swing_mode := self.model_info.enum_value(keys[2], mode)) is None:
+    async def set_vertical_swing_mode(self, mode):  
+        """Set the vertical swing to a value from the `ACVSwingMode` enum."""                                             
+        if mode not in self.vertical_swing_modes:
             raise ValueError(f"Invalid vertical swing mode: {mode}")
+        keys = self._get_cmd_keys(CMD_STATE_WDIR_VSWING)
+        swing_mode = self.model_info.enum_value(keys[2], ACVSwingMode[mode].value)
         await self.set(keys[0], keys[1], key=keys[2], value=swing_mode)
 
     async def set_target_temp(self, temp):
@@ -925,7 +927,7 @@ class AirConditionerDevice(Device):
             MODE_AIRCLEAN_ON = "@ON"
         else:
             MODE_AIRCLEAN_OFF = "@AC_MAIN_AIRCLEAN_OFF_W"
-            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"                                               
+            MODE_AIRCLEAN_ON = "@AC_MAIN_AIRCLEAN_ON_W"
         mode_key = MODE_AIRCLEAN_ON if status else MODE_AIRCLEAN_OFF
         mode = self.model_info.enum_value(keys[2], mode_key)
         await self.set(keys[0], keys[1], key=keys[2], value=mode)
@@ -999,22 +1001,15 @@ class AirConditionerDevice(Device):
 
     async def set_lighting_display(self, status: bool):
         """Set the lighting display on or off."""
-        if not (supp_modes := self.supported_ligth_modes):
-            raise ValueError("Light switching not supported")
-
         keys = self._get_cmd_keys(CMD_STATE_LIGHTING_DISPLAY)
-        modes = supp_modes[MODE_ON] if status else supp_modes[MODE_OFF]
-        for mode in modes:
-            if (lighting := self.model_info.enum_value(keys[2], mode)) is not None:
-                break
-        if lighting is None:
-            raise ValueError("Not possible to determinate a valid light mode")
+        lighting = LIGHTING_DISPLAY_ON if status else LIGHTING_DISPLAY_OFF
         await self.set(keys[0], keys[1], key=keys[2], value=lighting)
 
     async def set_mode_awhp_silent(self, value: bool):
         """Set the AWHP silent mode on or off."""
         if not self.is_air_to_water:
-            raise ValueError("AWHP silent mode not supported")
+            if  not self.is_mode_silent_supported:
+                raise ValueError("AWHP silent mode not supported")
         mode = MODE_ON if value else MODE_OFF
         keys = self._get_cmd_keys(CMD_STATE_MODE_AWHP_SILENT)
         if (silent_mode := self.model_info.enum_value(keys[2], mode)) is None:
@@ -1519,13 +1514,15 @@ class AirConditionerStatus(DeviceStatus):
     @property
     def lighting_display(self):
         """Return display lighting status."""
-        if not (supp_modes := self._device.supported_ligth_modes):
-            return None
+                                                                  
+                       
         key = self._get_state_key(STATE_LIGHTING_DISPLAY)
-        if (value := self.lookup_enum(key, True)) is None:
+        if (value := self.to_int_or_none(self._data.get(key))) is None:
             return None
         return self._update_feature(
-            AirConditionerFeatures.LIGHTING_DISPLAY, value in supp_modes[MODE_ON], False
+            AirConditionerFeatures.LIGHTING_DISPLAY,
+            str(value) == LIGHTING_DISPLAY_ON,
+            False,
         )
 
     @property
@@ -1630,7 +1627,7 @@ class AirConditionerStatus(DeviceStatus):
     @property
     def mode_awhp_silent(self):
         """Return AWHP silent mode status."""
-        if not (self._device.is_air_to_water and self.is_info_v2):
+        if not self.is_info_v2:
             return None
         key = self._get_state_key(STATE_MODE_AWHP_SILENT)
         if (value := self.lookup_enum(key, True)) is None:
@@ -1697,7 +1694,7 @@ class AirConditionerStatus(DeviceStatus):
             self.mode_smartcare,                                      
             self.mode_longpower,                                      
             self.mode_powersave,                                      
-            self.mode_autodry,                                                                                                
+            self.mode_autodry,
             self.mode_jet,
             self.lighting_display,
             self.water_in_current_temp,
