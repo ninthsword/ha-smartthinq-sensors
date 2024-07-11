@@ -65,7 +65,7 @@ HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
 }
 
 FAN_MODE_LOOKUP: dict[str, str] = {
-    ACFanSpeedRAC."자동".name: FAN_AUTO,
+    ACFanSpeedRAC.'자동'.name: FAN_AUTO,
     ACFanSpeedRAC."강풍".name: FAN_HIGH,
     ACFanSpeedRAC."약풍".name: FAN_LOW,
     ACFanSpeedRAC."중풍".name: FAN_MEDIUM,
