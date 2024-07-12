@@ -66,14 +66,14 @@ SERVICE_SET_SLEEP_TIME = "set_sleep_time"
 #}
 
 FAN_MODE_LOOKUP: dict[str, str] = {
-    '자동': FAN_AUTO,
-    '강풍': FAN_HIGH,
-    '약풍': FAN_LOW,
-    '중풍': FAN_MEDIUM,
-    '자동_자동': FAN_AUTO,
-    '강풍_강풍': FAN_HIGH,
-    '약풍_약풍': FAN_LOW,
-    '중풍_중풍': FAN_MEDIUM,
+    '자동': '자동',
+    '강풍': '강풍',
+    '약풍': '약풍',
+    '중풍': '중풍',
+    '자동_자동': '자동_자동',
+    '강풍_강풍': '강풍_강풍',
+    '약풍_약풍': '약풍_약풍',
+    '중풍_중풍': '중풍_중풍',
 }
 
 FAN_MODE_REVERSE_LOOKUP = {v: k for k, v in FAN_MODE_LOOKUP.items()}
