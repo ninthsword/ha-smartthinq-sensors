@@ -54,27 +54,26 @@ SWING_PREFIX = ["상하|", "좌우|"]
 # service definitions
 SERVICE_SET_SLEEP_TIME = "set_sleep_time"
 
-HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
-    ACMode.AI.name: HVACMode.AUTO,
-    ACMode.HEAT.name: HVACMode.HEAT,
-    ACMode.DRY.name: HVACMode.DRY,
-    ACMode.COOL.name: HVACMode.COOL,
-    ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
-    ACMode.FAN.name: HVACMode.FAN_ONLY,
-    ACMode.ACO.name: HVACMode.HEAT_COOL,
-}
+
+#HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+#    ACMode.AI.name: HVACMode.AUTO,
+#    ACMode.HEAT.name: HVACMode.HEAT,
+#    ACMode.DRY.name: HVACMode.DRY,
+#    ACMode.COOL.name: HVACMode.COOL,
+#    ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
+#    ACMode.FAN.name: HVACMode.FAN_ONLY,
+#    ACMode.ACO.name: HVACMode.HEAT_COOL,
+#}
 
 FAN_MODE_LOOKUP: dict[str, str] = {
-    "@AC_MAIN_WIND_STRENGTH_AUTO_W": FAN_AUTO,
-    "@AC_MAIN_WIND_STRENGTH_HIGH_W": FAN_HIGH,
-    "@AC_MAIN_WIND_STRENGTH_LOW_W": FAN_LOW,
-    "@AC_MAIN_WIND_STRENGTH_MID_W": FAN_MEDIUM,
-    "@AC_MAIN_WIND_STRENGTH_NATURE_W": FAN_DIFFUSE,
-    "@AC_MAIN_WIND_STRENGTH_AUTO_LEFT_W|AC_MAIN_WIND_STRENGTH_AUTO_RIGHT_W": FAN_AUTO,
-    "@AC_MAIN_WIND_STRENGTH_HIGH_LEFT_W|AC_MAIN_WIND_STRENGTH_HIGH_RIGHT_W": FAN_HIGH,
-    "@AC_MAIN_WIND_STRENGTH_LOW_LEFT_W|AC_MAIN_WIND_STRENGTH_LOW_RIGHT_W": FAN_LOW,
-    "@AC_MAIN_WIND_STRENGTH_MID_LEFT_W|AC_MAIN_WIND_STRENGTH_MID_RIGHT_W": FAN_MEDIUM,
-    "@AC_MAIN_WIND_STRENGTH_MID_NATURE_W|AC_MAIN_WIND_STRENGTH_MID_NATURE_W": FAN_DIFFUSE,
+    '자동': FAN_AUTO,
+    '강풍': FAN_HIGH,
+    '약풍': FAN_LOW,
+    '중풍': FAN_MEDIUM,
+    '자동_자동': FAN_AUTO,
+    '강풍_강풍': FAN_HIGH,
+    '약풍_약풍': FAN_LOW,
+    '중풍_중풍': FAN_MEDIUM,
 }
 
 FAN_MODE_REVERSE_LOOKUP = {v: k for k, v in FAN_MODE_LOOKUP.items()}
@@ -246,6 +245,24 @@ class LGEACClimate(LGEClimate):
     def _available_hvac_modes(self) -> dict[str, HVACMode]:
         """Return available hvac modes from lookup dict."""
         if self._hvac_mode_lookup is None:
+            if self._device.model_info.model_type == "PAC":
+                HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+                    ACMode.AI.name: HVACMode.AUTO,
+                    ACMode.HEAT.name: HVACMode.HEAT,
+                    ACMode.DRY.name: HVACMode.DRY,
+                    ACMode.COOL.name: HVACMode.COOL,
+                    ACMode.AIRCLEAN.name: HVACMode.FAN_ONLY,
+                    ACMode.ACO.name: HVACMode.HEAT_COOL,
+                }
+            else:
+                HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
+                    ACMode.AI.name: HVACMode.AUTO,
+                    ACMode.HEAT.name: HVACMode.HEAT,
+                    ACMode.DRY.name: HVACMode.DRY,
+                    ACMode.COOL.name: HVACMode.COOL,
+                    ACMode.FAN.name: HVACMode.FAN_ONLY,
+                    ACMode.ACO.name: HVACMode.HEAT_COOL,
+                }
             self._hvac_mode_lookup = {
                 key: mode
                 for key, mode in HVAC_MODE_LOOKUP.items()
