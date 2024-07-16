@@ -1,6 +1,6 @@
 """Constants for LGE ThinQ custom component."""
 
-__version__ = "0.39.2_0.1"
+__version__ = "0.39.2_0.2"
 PROJECT_URL = "https://github.com/ninthsword/ha-smartthinq-sensors/"
 ISSUE_URL = f"{PROJECT_URL}issues"
 
