@@ -1,6 +1,6 @@
 Custom from [ollo69](https://github.com/ollo69/ha-smartthinq-sensors)
 
-v0.39.2-0.2
+v0.41.1-0.2
 
 # LG ThinQ Devices integration for HomeAssistant
 
