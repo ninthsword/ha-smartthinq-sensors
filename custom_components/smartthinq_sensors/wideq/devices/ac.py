@@ -355,7 +355,7 @@ class AirConditionerDevice(Device):
             if temp_unit == TemperatureUnit.FAHRENHEIT
             else TemperatureUnit.CELSIUS
         )
-
+        self._sleep_time_range = None
         self._is_mode_airclean_supported = None
         self._is_mode_icevalley_supported = None          
         self._is_mode_smartcare_supported = None          
