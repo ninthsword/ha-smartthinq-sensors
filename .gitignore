@@ -19,5 +19,5 @@ config/*
 !config/configuration.yaml
 
 # WideQ test file
-custom_components/smartthinq_sensors_custom/wideq/deviceV1.txt
-custom_components/smartthinq_sensors_custom/wideq/deviceV2.txt
+custom_components/smartthinq_sensors/wideq/deviceV1.txt
+custom_components/smartthinq_sensors/wideq/deviceV2.txt
