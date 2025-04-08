@@ -1,5 +1,7 @@
 {
   "name": "SmartThinQ LGE Sensors Custom",
   "content_in_root": false,
+  "zip_release": true,
+  "filename": "smartthinq_sensors_custom.zip",
   "homeassistant": "2025.1.0"
 }
