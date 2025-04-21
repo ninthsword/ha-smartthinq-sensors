@@ -422,15 +422,21 @@ class LGEACClimate(LGEClimate):
 
     @property
     def swing_mode(self) -> str | None:
-        """Return the swing mode setting."""
-        return self._attr_swing_modes
+        if self._device.model_info.model_type == "PAC":
+            if self._use_h_mode:
+                return self._api.state.horizontal_swing_mode
+            return self._api.state.vertical_swing_mode
+        else:
+            if self._use_h_mode:
+                return self._api.state.horizontal_step_mode
+            return self._api.state.vertical_step_mode
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
         if swing_mode not in (self.swing_modes or []):
             raise ValueError(f"Invalid swing_mode [{swing_mode}].")
 
-        if swing_mode != self.swing_mode:
+        if swing_mode != self.swing_modes:
             if self._device.model_info.model_type == "PAC":
                 if self._use_h_mode:
                     await self._device.set_horizontal_swing_mode(swing_mode)
@@ -445,8 +451,10 @@ class LGEACClimate(LGEClimate):
 
     @property
     def swing_horizontal_mode(self) -> str | None:
-        """Return the swing horizontal mode setting."""
-        return self._attr_swing_horizontal_modes
+        if self._device.model_info.model_type == "PAC":
+            return self._api.state.horizontal_swing_mode
+        else:
+            return self._api.state.horizontal_step_mode
 
     async def async_set_swing_horizontal_mode(self, swing_horizontal_mode: str) -> None:
         """Set new target swing horizontal operation."""
