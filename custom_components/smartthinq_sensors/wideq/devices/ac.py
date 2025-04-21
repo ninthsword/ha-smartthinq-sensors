@@ -310,8 +310,8 @@ class ACHSwingMode(Enum):
     """The swing mode for an AC/HVAC device."""
 
     정지 = "@OFF"
-    회전_정지 = "@LEFT_ON"
-    정지_회전 = "@RIGHT_ON"
+    좌측회전 = "@LEFT_ON"
+    우측회전 = "@RIGHT_ON"
     회전 = "@ALL_ON"
     
 class ACHSwingModeDevice(Enum):   
@@ -650,7 +650,7 @@ class AirConditionerDevice(Device):
                                                                                                 
         if not self._is_mode_supported(SUPPORT_VANE_HSWING):
             return []
-        return self._get_property_values(STATE_WDIR_HSWING, ACHSwingModeDevice)
+        return self._get_property_values(STATE_WDIR_HSWING, ACHSwingMode)
      
     @cached_property
     def vertical_swing_modes(self):
