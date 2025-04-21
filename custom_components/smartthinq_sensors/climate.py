@@ -436,7 +436,7 @@ class LGEACClimate(LGEClimate):
         if swing_mode not in (self.swing_modes or []):
             raise ValueError(f"Invalid swing_mode [{swing_mode}].")
 
-        if swing_mode != self.swing_modes:
+        if swing_mode != self.swing_mode:
             if self._device.model_info.model_type == "PAC":
                 if self._use_h_mode:
                     await self._device.set_horizontal_swing_mode(swing_mode)
