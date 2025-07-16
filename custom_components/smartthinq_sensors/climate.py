@@ -51,6 +51,8 @@ HVAC_MODE_NONE = "--"
 # service definitions
 SERVICE_SET_SLEEP_TIME = "set_sleep_time"
 
+SERVICE_SET_STOP_TIME = "set_stop_time"
+SERVICE_SET_START_TIME = "set_start_time"
 
 #HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
 #    ACMode.AI.name: HVACMode.AUTO,
@@ -179,7 +181,18 @@ async def async_setup_entry(
         {vol.Required("sleep_time"): int},
         "async_set_sleep_time",
     )
-
+    platform = current_platform.get()
+    platform.async_register_entity_service(
+        SERVICE_SET_STOP_TIME,
+        {vol.Required("stop_time"): int},
+        "async_set_stop_time",
+    )
+    platform = current_platform.get()
+    platform.async_register_entity_service(
+        SERVICE_SET_START_TIME,
+        {vol.Required("start_time"): int},
+        "async_set_start_time",
+    )
 
 class LGEClimate(CoordinatorEntity, ClimateEntity):
     """Base climate device."""
@@ -201,6 +214,13 @@ class LGEClimate(CoordinatorEntity, ClimateEntity):
         """Call the set sleep time command for AC devices."""
         raise NotImplementedError()
 
+    async def async_set_stop_time(self, stop_time: int) -> None:
+        """Call the set stop time command for AC devices."""
+        raise NotImplementedError()
+
+    async def async_set_start_time(self, start_time: int) -> None:
+        """Call the set start time command for AC devices."""
+        raise NotImplementedError()
 
 class LGEACClimate(LGEClimate):
     """Air-to-Air climate device."""
@@ -501,6 +521,13 @@ class LGEACClimate(LGEClimate):
         """Call the set sleep time command for AC devices."""
         await self._device.set_reservation_sleep_time(sleep_time)
 
+    async def async_set_stop_time(self, stop_time: int) -> None:
+        """Call the set stop time command for AC devices."""
+        await self._device.set_reservation_stop_time(stop_time)
+
+    async def async_set_start_time(self, start_time: int) -> None:
+        """Call the set start time command for AC devices."""
+        await self._device.set_reservation_start_time(start_time)
 
 class LGERefrigeratorClimate(LGEClimate):
     """Refrigerator climate device."""
