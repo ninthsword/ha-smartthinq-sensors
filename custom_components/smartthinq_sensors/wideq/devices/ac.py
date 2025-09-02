@@ -69,6 +69,9 @@ SUPPORT_MODE_SILENT = [SUPPORT_SAC_SUBMODE, "@SUPPORT_LOW_NOISE"]
 CTRL_BASIC = ["Control", "basicCtrl"]
 CTRL_WIND_DIRECTION = ["Control", "wDirCtrl"]
 CTRL_MISC = ["Control", "miscCtrl"]
+CTRL_RESERVATION = ["Control", "reservationCtrl"]
+CTRL_MODE = ["Control", "wModeCtrl"]
+CTRL_SETTING = ["Control", "settingInfo"]
 
 CTRL_FILTER_V2 = "filterMngStateCtrl"
 # CTRL_SETTING = "settingInfo"
@@ -98,7 +101,9 @@ STATE_MODE_AIRCLEAN = ["AirClean", "airState.wMode.airClean"]
 STATE_MODE_JET = ["Jet", "airState.wMode.jet"]
 STATE_LIGHTING_DISPLAY = ["DisplayControl", "airState.lightingState.displayControl"]
 STATE_AIRSENSORMON = ["SensorMon", "airState.quality.sensorMon"]
+
 STATE_RESERVATION_SLEEP_TIME = ["SleepTime", "airState.reservation.sleepTime"]
+STATE_RESERVATION_STOP_TIME = ["SleepTime", "airState.reservation.targetTimeToStop"]
 
 STATE_MODE_ICEVALLEY = ["IceValley","airState.wMode.iceValley"]                   
 STATE_MODE_SMARTCARE = ["SmartCare","airState.wMode.smartCare"]                   
@@ -135,13 +140,16 @@ CMD_STATE_DUCT_ZONES = [CTRL_MISC, "Set", [DUCT_ZONE_V1, "airState.ductZone.cont
 CMD_STATE_MODE_AIRCLEAN = [CTRL_BASIC, "Set", STATE_MODE_AIRCLEAN]
 CMD_STATE_MODE_JET = [CTRL_BASIC, "Set", STATE_MODE_JET]
 CMD_STATE_LIGHTING_DISPLAY = [CTRL_BASIC, "Set", STATE_LIGHTING_DISPLAY]
+
 CMD_RESERVATION_SLEEP_TIME = [CTRL_BASIC, "Set", STATE_RESERVATION_SLEEP_TIME]
+CMD_RESERVATION_STOP_TIME = [CTRL_BASIC, "Set", STATE_RESERVATION_STOP_TIME]
 
 CMD_STATE_MODE_ICEVALLEY = [CTRL_BASIC, "Set", STATE_MODE_ICEVALLEY]           
 CMD_STATE_MODE_SMARTCARE = [CTRL_BASIC, "Set", STATE_MODE_SMARTCARE]           
 CMD_STATE_MODE_LONGPOWER = [CTRL_BASIC, "Set", STATE_MODE_LONGPOWER]           
-CMD_STATE_MODE_POWERSAVE = [CTRL_BASIC, "Set", STATE_MODE_POWERSAVE]           
-CMD_STATE_MODE_AUTODRY = [CTRL_BASIC, "Set", STATE_MODE_AUTODRY]               
+CMD_STATE_MODE_POWERSAVE = [CTRL_SETTING, "Set", STATE_MODE_POWERSAVE]           
+CMD_STATE_MODE_AUTODRY = [CTRL_SETTING, "Set", STATE_MODE_AUTODRY]               
+
 # AWHP Section
 STATE_AWHP_TEMP_MODE = ["AwhpTempSwitch", "airState.miscFuncState.awhpTempSwitch"]
 STATE_WATER_IN_TEMP = ["WaterInTempCur", "airState.tempState.inWaterCurrent"]
@@ -356,6 +364,7 @@ class AirConditionerDevice(Device):
             else TemperatureUnit.CELSIUS
         )
         self._sleep_time_range = None
+        self._stop_time_range = None
         self._is_mode_airclean_supported = None
         self._is_mode_icevalley_supported = None          
         self._is_mode_smartcare_supported = None          
@@ -770,7 +779,8 @@ class AirConditionerDevice(Device):
             return False
         if curr_op_mode in ACMode.DRY.name:
             return True
-        return False                                                                                  
+        return False
+        
     @cached_property
     def supported_mode_jet(self):
         """Return if Jet mode is supported."""
@@ -980,7 +990,8 @@ class AirConditionerDevice(Device):
         keys = self._get_cmd_keys(CMD_STATE_MODE_AUTODRY)                                                         
         mode_key = MODE_ON if status else MODE_OFF                                                           
         mode = self.model_info.enum_value(keys[2], mode_key)                                                 
-        await self.set(keys[0], keys[1], key=keys[2], value=mode)                                            
+        await self.set(keys[0], keys[1], key=keys[2], value=mode)  
+        
     async def set_mode_jet(self, status: bool):
         """Set the Jet mode on or off."""
         if self.supported_mode_jet == JetModeSupport.NONE:
@@ -1079,7 +1090,7 @@ class AirConditionerDevice(Device):
         """Return valid range for sleep time."""
         key = self._get_state_key(STATE_RESERVATION_SLEEP_TIME)
         if (range_val := self.model_info.value(key, TYPE_RANGE)) is None:
-            return [0, 420]
+            return [0, 720]
         return [range_val.min, range_val.max]
 
     @property
@@ -1108,6 +1119,40 @@ class AirConditionerDevice(Device):
             )
         keys = self._get_cmd_keys(CMD_RESERVATION_SLEEP_TIME)
         await self.set(keys[0], keys[1], key=keys[2], value=str(value))
+
+
+    @cached_property
+    def stop_time_range(self) -> list[int]:
+        """Return valid range for stop time."""
+        key = self._get_state_key(STATE_RESERVATION_STOP_TIME)
+        if (range_val := self.model_info.value(key, TYPE_RANGE)) is None:
+            return [0, 1440]
+        return [range_val.min, range_val.max]
+
+    @property
+    def is_reservation_stop_time_available(self) -> bool:
+        """Return if reservation stop time is available."""
+        if (status := self._status) is None:
+            return False
+        if (
+            status.device_features.get(AirConditionerFeatures.RESERVATION_STOP_TIME)
+            is None
+        ):
+            return False
+        return status.is_on
+
+    async def set_reservation_stop_time(self, value: int):
+        """Set the device stop time reservation in minutes."""
+        if not self.is_reservation_stop_time_available:
+            raise ValueError("Reservation stop time is not available")
+        valid_range = self.stop_time_range
+        if not (valid_range[0] <= value <= valid_range[1]):
+            raise ValueError(
+                f"Invalid stop time value. Valid range: {valid_range[0]} - {valid_range[1]}"
+            )
+        keys = self._get_cmd_keys(CMD_RESERVATION_STOP_TIME)
+        await self.set(keys[0], keys[1], key=keys[2], value=str(value))
+
 
     async def set(
         self, ctrl_key, command, *, key=None, value=None, data=None, ctrl_path=None
@@ -1680,6 +1725,16 @@ class AirConditionerStatus(DeviceStatus):
             AirConditionerFeatures.RESERVATION_SLEEP_TIME, value, False
         )
 
+    @property
+    def reservation_stop_time(self):
+        """Return reservation stop time in minutes."""
+        key = self._get_state_key(STATE_RESERVATION_STOP_TIME)
+        if (value := self.to_int_or_none(self.lookup_range(key))) is None:
+            return None
+        return self._update_feature(
+            AirConditionerFeatures.RESERVATION_STOP_TIME, value, False
+        )
+
     def _update_features(self):
         _ = [
             self.room_temp,
@@ -1702,4 +1757,5 @@ class AirConditionerStatus(DeviceStatus):
             self.mode_awhp_silent,
             self.hot_water_current_temp,
             self.reservation_sleep_time,
+            self.reservation_stop_time,
         ]
