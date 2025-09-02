@@ -50,7 +50,7 @@ HVAC_MODE_NONE = "--"
 
 # service definitions
 SERVICE_SET_SLEEP_TIME = "set_sleep_time"
-
+SERVICE_SET_STOP_TIME = "set_stop_time"
 
 #HVAC_MODE_LOOKUP: dict[str, HVACMode] = {
 #    ACMode.AI.name: HVACMode.AUTO,
@@ -179,7 +179,13 @@ async def async_setup_entry(
         {vol.Required("sleep_time"): int},
         "async_set_sleep_time",
     )
-
+    
+    platform = current_platform.get()
+    platform.async_register_entity_service(
+        SERVICE_SET_STOP_TIME,
+        {vol.Required("stop_time"): int},
+        "async_set_stop_time",
+    )
 
 class LGEClimate(CoordinatorEntity, ClimateEntity):
     """Base climate device."""
@@ -201,6 +207,9 @@ class LGEClimate(CoordinatorEntity, ClimateEntity):
         """Call the set sleep time command for AC devices."""
         raise NotImplementedError()
 
+    async def async_set_stop_time(self, stop_time: int) -> None:
+        """Call the set stop time command for AC devices."""
+        raise NotImplementedError()
 
 class LGEACClimate(LGEClimate):
     """Air-to-Air climate device."""
@@ -341,7 +350,7 @@ class LGEACClimate(LGEClimate):
         reverse_lookup = {v: k for k, v in modes.items()}
         if (operation_mode := reverse_lookup.get(hvac_mode)) is None:
             raise ValueError(f"Invalid hvac_mode [{hvac_mode}]")
-
+        
         if not self._api.state.is_on:
             await self._device.power(True)
         if operation_mode != HVAC_MODE_NONE:
@@ -501,6 +510,9 @@ class LGEACClimate(LGEClimate):
         """Call the set sleep time command for AC devices."""
         await self._device.set_reservation_sleep_time(sleep_time)
 
+    async def async_set_stop_time(self, stop_time: int) -> None:
+        """Call the set stop time command for AC devices."""
+        await self._device.set_reservation_stop_time(stop_time)
 
 class LGERefrigeratorClimate(LGEClimate):
     """Refrigerator climate device."""

@@ -71,3 +71,23 @@ set_sleep_time:
           max: 720
           mode: box
           unit_of_measurement: minutes
+
+set_stop_time:
+  name: Set stop time
+  description: Set stop time.
+  target:
+    entity:
+      integration: smartthinq_sensors_custom
+      domain: climate
+  fields:
+    stop_time:
+      name: "Timeout"
+      description: Timeout for stop mode in minutes
+      default: 60
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 1440
+          mode: box
+          unit_of_measurement: minutes
