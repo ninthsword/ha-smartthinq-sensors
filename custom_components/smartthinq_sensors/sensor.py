@@ -305,6 +305,13 @@ AC_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (
         state_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.RESERVATION_STOP_TIME,
+        name="Stop time",
+        icon="mdi:weather-night",
+        state_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+    ),
 )
 RANGE_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (
     ThinQSensorEntityDescription(
