@@ -60,7 +60,7 @@ V2_THINQ_APP_VER = "LG ThinQ/5.0.12120"
 
 # new
 V2_GATEWAY_URL = "https://route.lgthinq.com:46030/v1/service/application/gateway-uri"
-V2_GATEWAY_URI_KEY = "uris
+V2_GATEWAY_URI_KEY = "uris"
 V2_AUTH_PATH = "/oauth/1.0/oauth2/token"
 V2_OAUTH_URL_KEY = "empOauthBaseUri"
 V2_USER_INFO = "/users/profile"
