@@ -1,6 +1,6 @@
-Custom from [ollo69](https://github.com/ollo69/ha-smartthinq-sensors)
+Custom from [ollo69](https://github.com/ollo69/ha-smartthinq-sensors), [af950833](https://github.com/af950833/ha-smartthinq-sensors)
 
-v0.41.1-0.2
+v0.42.2-0.2
 
 # LG ThinQ Devices integration for HomeAssistant
 
@@ -429,6 +429,7 @@ This component is developed by [Ollo69][ollo69] based on [WideQ API][wideq].
 Original WideQ API was developed by [Adrian Sampson][adrian] under license [MIT][].
 
 [ollo69]: https://github.com/ollo69
+[af950833]: https://github.com/af950833
 [wideq]: https://github.com/sampsyo/wideq
 [adrian]: https://github.com/sampsyo
 [mit]: https://opensource.org/licenses/MIT
