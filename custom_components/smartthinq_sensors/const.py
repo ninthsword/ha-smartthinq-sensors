@@ -1,6 +1,6 @@
 """Constants for LGE ThinQ custom component."""
 
-__version__ = "0.42.2_0.1"
+__version__ = "0.42.2_0.2"
 PROJECT_URL = "https://github.com/ninthsword/ha-smartthinq-sensors/"
 ISSUE_URL = f"{PROJECT_URL}issues"
 
@@ -33,10 +33,7 @@ ATTR_OVEN_TEMP_UNIT = "oven_temp_unit"
 
 # configuration
 CONF_LANGUAGE = "language"
-CONF_OAUTH2_URL = "oauth2_url"
 CONF_USE_API_V2 = "use_api_v2"
-CONF_USE_HA_SESSION = "use_ha_session"
-CONF_USE_REDIRECT = "use_redirect"
 
 CLIENT = "client"
 LGE_DEVICES = "lge_devices"
