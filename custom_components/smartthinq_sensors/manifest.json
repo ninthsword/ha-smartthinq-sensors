@@ -1,7 +1,7 @@
 {
   "domain": "smartthinq_sensors_custom",
   "name": "SmartThinQ LGE Sensors Custom",
-  "codeowners": ["@ollo69", "@ninthsword"],
+  "codeowners": ["@ollo69", "@af950833", "@ninthsword"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/ninthsword/ha-smartthinq-sensors",
@@ -11,7 +11,8 @@
   "requirements": [
     "pycountry>=23.12.11",
     "xmltodict>=0.13.0",
-    "charset_normalizer>=3.2.0"
+    "charset_normalizer>=3.2.0",
+    "cryptography>=42.0.0"
   ],
-  "version": "0.42.2-0.1"
+  "version": "0.42.2-0.2"
 }

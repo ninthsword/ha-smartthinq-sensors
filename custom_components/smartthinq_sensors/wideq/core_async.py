@@ -9,21 +9,19 @@ import base64
 from collections.abc import Callable
 from datetime import datetime, timezone
 import hashlib
-import hmac
 import json
 import logging
 import os
+import re
 import ssl
 import sys
 from typing import Any
 from urllib.parse import (
-    ParseResult,
     parse_qs,
     quote,
     urlencode,
     urljoin,
     urlparse,
-    urlunparse,
 )
 import uuid
 
@@ -45,50 +43,66 @@ ENABLE_CLEANUP_CLOSED = not (3, 11, 1) <= sys.version_info < (3, 11, 4)
 # aiohttp interacts poorly with https://github.com/python/cpython/pull/98540
 # The issue was fixed in 3.11.4 via https://github.com/python/cpython/pull/104485
 
-# enable logging of auth information
-LOG_AUTH_INFO = False
-
 # v2
 V2_API_KEY = "VGhpblEyLjAgU0VSVklDRQ=="
+V2_NSCREEN_API_KEY = "ijVUYQIKVVaLNpfZrLOI2CeWrYlrAkImRFbGvIRQFrf3qjUhWLOgbxvtICtr1OiC"
 # V2_CLIENT_ID = "65260af7e8e6547b51fdccf930097c51eb9885a508d3fddfa9ee6cdec22ae1bd"
 V2_CLIENT_ID = "c713ea8e50f657534ff8b9d373dfebfc2ed70b88285c26b8ade49868c0b164d9"
 V2_SVC_PHASE = "OP"
 V2_APP_LEVEL = "PRD"
-V2_APP_OS = "ANDROID"  # "LINUX"
-V2_APP_TYPE = "NUTS"
-V2_APP_VER = "5.0.1200"  # "3.0.1700"
+V2_APP_OS = "browser"
+V2_APP_TYPE = "WEB"
+V2_APP_VER = "5.1.2600"
 V2_THINQ_APP_VER = "LG ThinQ/5.0.12120"
+V2_APP_ORIGIN = "app-web-browser"
+V2_WEB_REFERER = "https://my.lgthinq.com/"
+V2_WEB_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/125.0.0.0 Safari/537.36"
+)
+V2_CLIENT_ID_REFRESH_INTERVAL = 60 * 60
 
 # new
 V2_GATEWAY_URL = "https://route.lgthinq.com:46030/v1/service/application/gateway-uri"
 V2_GATEWAY_URI_KEY = "uris"
-V2_AUTH_PATH = "/oauth/1.0/oauth2/token"
-V2_OAUTH_URL_KEY = "empOauthBaseUri"
-V2_USER_INFO = "/users/profile"
-V2_EMP_SESS_URL = "https://emp-oauth.lgecloud.com/emp/oauth2/token/empsession"
-OAUTH_LOGIN_HOST = "us.m.lgaccount.com"
-OAUTH_LOGIN_PATH = "login/signIn"
-OAUTH_REDIRECT_PATH = "login/iabClose"
-OAUTH_REDIRECT_URI = f"https://kr.m.lgaccount.com/{OAUTH_REDIRECT_PATH}"
-APPLICATION_KEY = "6V1V8H2BN5P9ZQGOI5DAQ92YZBDO3EK9"  # for spx login
-OAUTH_CLIENT_KEY = "LGAO722A02"
-OAUTH_URL_KEY = "oauthUri"
-EMP_REDIRECT_URL = "lgaccount.lgsmartthinq:/"
-THIRD_PART_LOGIN = {
-    "GGL": "google",
-    "AMZ": "amazon",
-    "FBK": "facebook",
-    "APPL": "apple",
-}
+V2_NSCREEN_AUTH_REFRESH_URL = "https://kic-nscreen.lgthinq.com/v1/auth/refresh"
+V2_NSCREEN_AUTH_LOGIN_URL = "https://kic-nscreen.lgthinq.com/v1/auth/login"
+V2_WEB_USER_INFO_URL = (
+    "https://kr.lid.lgemembers.com/realms/LGE-MP/"
+    "protocol/lge-openid-connect/userinfo"
+)
+V2_WEB_SIGNIN_ACT_URL = "https://kr.lgemembers.com/lgacc/front/v1/signin/signInAct"
+V2_WEB_KC_CODE_URL = "https://kr.lgemembers.com/lgacc/service/v1/keycloak/kcCode"
+V2_WEB_POST_SIGNIN_TOKEN_RE = (
+    r"setSessionStorageObject\('post_signin_token', '([^']+)'\)"
+)
+V2_WEB_USER_INFO_LEGACY_URL = (
+    "https://kr.lgemembers.com/lgacc/service/v1/keycloak/userInfo"
+)
+V2_WEB_SEARCH_USER_NO_URL = (
+    "https://kr.lgemembers.com/lgacc/front/v1/signin/searchByUserNo"
+)
+V2_WEB_SIGNIN_COMPLETE_URL = (
+    "https://kr.lgemembers.com/lgacc/front/v1/signin/signInComplete"
+)
+V2_WEB_DECRYPT_TOKEN_URL = (
+    "https://kr.lgemembers.com/lgacc/service/v1/keycloak/decryptTokenUrl"
+)
+V2_WEB_LOGIN_PUBLIC_KEY = b"""-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkb2bcfvV5Q2Ag0UI6Mj3
+oDmS0b2I9RTIRFhIVqrO47FRKQaFQpjiKkgxMcbLqK+ACTORrt6eA6srX/HKGtN9
+aJvM/8ZzqAe1tztli/yQtm6MezKExTtSAxYkawaV2s+pj7RkOes+BsJ0ahL/HC1x
+divxU4M0DN7AKdOyQM3XJnAfIimb1yhI5VeQkSBLDeAY9OTjRdAn4N6aRXaIwtck
+hQYDs7t120uhRvtRX8WVY+YiROCKTgK9PPcvaGgWublxLnSPFFb4BGYDan2Ro0DL
+b0DD1It4vqePBDWZD9MByhRJ67mQGXOJ/u3EEbctHB7TZkejjWn5sArU6K1jP0LB
+hwIDAQAB
+-----END PUBLIC KEY-----"""
 
 # orig
 DATA_ROOT = "lgedmRoot"
-GATEWAY_URL = "https://kic.lgthinq.com:46030/api/common/gatewayUriList"
 SECURITY_KEY = "nuts_securitykey"
 SVC_CODE = "SVC202"
-CLIENT_ID = "LGAO221A02"
-OAUTH_SECRET_KEY = "c053c2a6ddeb7ad97cb0eed0dcb31cf8"
-DATE_FORMAT = "%a, %d %b %Y %H:%M:%S +0000"
 
 API2_ERRORS = {
     "0101": exc.DeviceNotFound,
@@ -124,32 +138,6 @@ _HOME_CURRENT = "currentHomeYn"
 
 _LOGGER = logging.getLogger(__name__)
 
-
-def _oauth_info_from_result(result_info: dict) -> dict:
-    """Return authentication info using an OAuth callback URL."""
-
-    result = {}
-    if "refresh_token" in result_info:
-        result = {
-            "refresh_token": result_info["refresh_token"],
-            "access_token": result_info.get("access_token"),
-            "token_validity": result_info.get(
-                "expires_in", str(DEFAULT_TOKEN_VALIDITY)
-            ),
-            "user_number": None,
-        }
-    elif "code" in result_info:
-        result = {
-            "auth_code": result_info["code"],
-            "user_number": result_info.get("user_number"),
-        }
-
-    if result and "oauth2_backend_url" in result_info:
-        result["oauth_url"] = result_info["oauth2_backend_url"]
-
-    return result
-
-
 def _create_lg_ssl_context() -> ssl.SSLContext:
     """Create a SSL context for LG ThinQ."""
     context = ssl.create_default_context()
@@ -177,7 +165,6 @@ class CoreAsync:
         language: str = DEFAULT_LANGUAGE,
         *,
         timeout: int = DEFAULT_TIMEOUT,
-        oauth_url: str | None = None,
         session: aiohttp.ClientSession | None = None,
         client_id: str | None = None,
         update_clientid_callback: Callable[[str], None] | None = None,
@@ -195,8 +182,10 @@ class CoreAsync:
         self._country = country
         self._language = language
         self._timeout = aiohttp.ClientTimeout(total=timeout)
-        self._oauth_url = oauth_url
         self._client_id = client_id
+        self._client_id_created_on = (
+            datetime.now(timezone.utc) if client_id is not None else None
+        )
         self._update_clientid_callback = update_clientid_callback
         self._lang_pack_url = None
 
@@ -243,6 +232,21 @@ class CoreAsync:
         self, user_number: str | None = None, force_refresh: bool = False
     ) -> str:
         """Generate a new clent ID or return existing."""
+        if (
+            self._client_id is not None
+            and not force_refresh
+            and user_number is not None
+            and self._client_id_created_on is not None
+        ):
+            client_id_age = (
+                datetime.now(timezone.utc) - self._client_id_created_on
+            ).total_seconds()
+            if client_id_age >= V2_CLIENT_ID_REFRESH_INTERVAL:
+                _LOGGER.info(
+                    "Refreshing client ID after %.0f seconds", client_id_age
+                )
+                force_refresh = True
+
         if self._client_id is not None and not force_refresh:
             return self._client_id
         if user_number is None:
@@ -255,9 +259,14 @@ class CoreAsync:
             )
         )
         self._client_id = hash_object.hexdigest()
+        self._client_id_created_on = datetime.now(timezone.utc)
         if self._update_clientid_callback is not None:
             self._update_clientid_callback(self._client_id)
         return self._client_id
+
+    def _web_client_id(self) -> str:
+        """Return a ThinQ Web-style client ID."""
+        return self._get_client_id("web") or V2_CLIENT_ID
 
     @staticmethod
     async def _get_json_resp(response: aiohttp.ClientResponse) -> dict:
@@ -275,21 +284,6 @@ class CoreAsync:
             return xmltodict.parse(resp_text)
         except Exception:
             raise exc.InvalidResponseError(resp_text) from None
-
-    @staticmethod
-    def _oauth2_signature(message: str, secret: str) -> str:
-        """
-        Get the base64-encoded SHA-1 HMAC digest of a string, as used in
-        OAauth2 request signatures.
-
-        Both the `secret` and `message` are given as text strings. We use
-        their UTF-8 equivalents.
-        """
-
-        secret_bytes = secret.encode("utf8")
-        hashed = hmac.new(secret_bytes, message.encode("utf8"), hashlib.sha1)
-        digest = hashed.digest()
-        return base64.b64encode(digest).decode("utf8")
 
     @staticmethod
     def _thinq2_headers(
@@ -314,17 +308,21 @@ class CoreAsync:
             "x-message-id": gen_uuid(),
             "x-service-code": SVC_CODE,
             "x-service-phase": V2_SVC_PHASE,
+            "x-origin": V2_APP_ORIGIN,
             "x-thinq-app-level": V2_APP_LEVEL,
+            "x-thinq-app-logintype": "LGE" if access_token else "undefined",
             "x-thinq-app-os": V2_APP_OS,
             "x-thinq-app-type": V2_APP_TYPE,
             "x-thinq-app-ver": V2_APP_VER,
+            "Referer": V2_WEB_REFERER,
+            "User-Agent": V2_WEB_USER_AGENT,
         }
 
         if security_key:
             headers["x-thinq-security-key"] = SECURITY_KEY
 
         if access_token:
-            headers["x-emp-token"] = access_token
+            headers["Authorization"] = f"Bearer {access_token}"
 
         if user_number:
             headers["x-user-no"] = user_number
@@ -424,8 +422,8 @@ class CoreAsync:
                 code = result["resultCode"]
                 if code != "0000":
                     if code in ("9006", "9012"):
-                        # this are messages "Please consider using the official API" or "consider using native API"
-                        # we refresh the client_id as work-around
+                        # we refresh the client_id as work-around for messages
+                        # suggesting the official/native API.
                         _LOGGER.info(
                             "Refreshing client ID after receiving msg 9006 or 9012: %s",
                             result,
@@ -452,347 +450,308 @@ class CoreAsync:
 
         return msg
 
-    async def get_oauth_url(self):
-        """Return url used for oauth2 authentication."""
-
-        if self._oauth_url:
-            return self._oauth_url
-
-        _LOGGER.debug("Try to retrieve oauth url using APIv2")
-        try:
-            await self.gateway_info()
-        except exc.APIError as ex:
-            _LOGGER.debug("Failed to retrieve oauth url using APIv2: %s", ex.message)
-
-        if not self._oauth_url:
-            _LOGGER.info(
-                "Failed to retrieve oauth url using APIv2 gateway, "
-                "try to retrieve oauth url using APIv1 gateway"
-            )
-            self._oauth_url = await self._get_apiv1_oauth_url()
-
-        _LOGGER.debug("Oauth url retrieved: %s", self._oauth_url)
-
-        return self._oauth_url
-
-    def _get_oauth_url_from_gateway_v2_info(self, gateway_v2_info: dict) -> str | None:
-        """Extract oauth url from gateway v2 info."""
-
-        _LOGGER.debug("Extracting OAuth url from gateway info")
-        oauth_base = None
-        if gateway_v2_info and isinstance(gateway_v2_info, dict):
-
-            lang_pack = None
-            if uris := gateway_v2_info.get(V2_GATEWAY_URI_KEY):
-                if isinstance(uris, dict):
-                    oauth_base = uris.get(V2_OAUTH_URL_KEY)
-                    lang_pack = uris.get(_COMMON_LANG_URI_ID)
-
-            if not oauth_base:
-                oauth_base = gateway_v2_info.get(V2_OAUTH_URL_KEY)
-            if not lang_pack:
-                lang_pack = gateway_v2_info.get(_COMMON_LANG_URI_ID)
-
-            if lang_pack and self._lang_pack_url is None:
-                # probably this is not available with APIv2
-                self._lang_pack_url = lang_pack
-                _LOGGER.debug("Common lang pack url: %s", self._lang_pack_url)
-
-        return oauth_base
-
-    async def _get_apiv1_oauth_url(self):
-        """Return url used for oauth2 authentication using APIv1."""
-
-        headers = {
-            "Accept": "application/json",
-            "x-thinq-application-key": "wideq",
-            "x-thinq-security-key": SECURITY_KEY,
-        }
-
-        async with self._get_session().post(
-            url=GATEWAY_URL,
-            json={
-                DATA_ROOT: {"countryCode": self._country, "langCode": self._language}
-            },
-            headers=headers,
-            timeout=self._timeout,
-            raise_for_status=False,
-        ) as resp:
-            out = await resp.json()
-
-        gateway_result = self._manage_lge_result(out)
-        _LOGGER.debug("Gateway info from APIv1: %s", gateway_result)
-        oauth_url = gateway_result[OAUTH_URL_KEY]
-        
-        if self._lang_pack_url is None and _COMMON_LANG_URI_ID in gateway_result:
-            self._lang_pack_url = gateway_result[_COMMON_LANG_URI_ID]
-            _LOGGER.debug("Common lang pack url: %s", self._lang_pack_url)
-
-        return oauth_url
-
     async def gateway_info(self):
         """Return ThinQ gateway information."""
         result = await self.thinq2_get(V2_GATEWAY_URL)
         _LOGGER.debug("GatewayV2 info: %s", result)
-        if not self._oauth_url:
-            self._oauth_url = self._get_oauth_url_from_gateway_v2_info(result)
-            
+        if isinstance(result, dict):
+            lang_pack = None
+            if uris := result.get(V2_GATEWAY_URI_KEY):
+                if isinstance(uris, dict):
+                    lang_pack = uris.get(_COMMON_LANG_URI_ID)
+            if not lang_pack:
+                lang_pack = result.get(_COMMON_LANG_URI_ID)
+            if lang_pack and self._lang_pack_url is None:
+                self._lang_pack_url = lang_pack
+                _LOGGER.debug("Common lang pack url: %s", self._lang_pack_url)
+
         return result
 
-    async def auth_user_login(
-        self,
-        login_base_url: str,
-        emp_base_url: str,
-        username: str,
-        encrypted_pwd: str,
-        *,
-        extra_headers: dict | None = None,
-    ):
-        """
-        Perform a login with username and password.
-        Password must be encrypted using hashlib with hash512 algorythm.
-        """
-
-        headers = {
-            "Accept": "application/json",
-            "X-Application-Key": APPLICATION_KEY,
-            "X-Client-App-Key": CLIENT_ID,
-            "X-Lge-Svccode": "SVC709",
-            "X-Device-Type": "M01",
-            "X-Device-Platform": "ADR",
-            "X-Device-Language-Type": "IETF",
-            "X-Device-Publish-Flag": "Y",
-            "X-Device-Country": self._country,
-            "X-Device-Language": self._language,
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "Access-Control-Allow-Origin": "*",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
+    @staticmethod
+    def _web_form_headers(referer: str) -> dict:
+        """Return headers used by the ThinQ Web LG account form posts."""
+        return {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "https://kr.lgemembers.com",
+            "Referer": referer,
+            "User-Agent": V2_WEB_USER_AGENT,
+            "X-Requested-With": "XMLHttpRequest",
         }
 
-        url = urljoin(login_base_url, "preLogin")
-        pre_login_data = {
-            "user_auth2": encrypted_pwd,
-            "log_param": f"login request / user_id : {username} / third_party : null / svc_list : SVC202,SVC710 / 3rd_service : ",
+    @staticmethod
+    async def _web_encrypted_user_id(username: str) -> str:
+        """Encrypt the LG account user id in the same way as ThinQ Web."""
+
+        def _encrypt() -> str:
+            from cryptography.hazmat.primitives.asymmetric import padding
+            from cryptography.hazmat.primitives.serialization import (
+                load_pem_public_key,
+            )
+
+            public_key = load_pem_public_key(V2_WEB_LOGIN_PUBLIC_KEY)
+            encrypted = public_key.encrypt(username.encode("utf8"), padding.PKCS1v15())
+            return quote(base64.b64encode(encrypted).decode(), safe="")
+
+        return await asyncio.to_thread(_encrypt)
+
+    async def web_user_login(self, username: str, password: str) -> dict:
+        """Login through the ThinQ Web flow and return auth information."""
+        session = self._get_session()
+        login_headers = self._thinq2_headers(
+            client_id=self._web_client_id(),
+            country=self._country,
+            language=self._language,
+            extra_headers={
+                "x-api-key": V2_NSCREEN_API_KEY,
+                "x-origin": "webapp",
+            },
+        )
+        login_params = {
+            "country": self._country,
+            "language": self._language,
+            "svc_code": SVC_CODE,
+            "callback_url": V2_WEB_REFERER.rstrip("/"),
+        }
+        async with session.get(
+            url=V2_NSCREEN_AUTH_LOGIN_URL,
+            params=login_params,
+            headers=login_headers,
+            timeout=self._timeout,
+            raise_for_status=False,
+        ) as resp:
+            login_info = await self._get_json_resp(resp)
+
+        redirect_url = (login_info.get("result") or {}).get("redirectUrl")
+        if login_info.get("resultCode") != "0000" or not redirect_url:
+            raise exc.AuthenticationError("ThinQ Web login URL request failed")
+
+        async with session.get(
+            url=redirect_url,
+            headers={"User-Agent": V2_WEB_USER_AGENT, "Referer": V2_WEB_REFERER},
+            timeout=self._timeout,
+            raise_for_status=False,
+        ) as resp:
+            signin_url = str(resp.url)
+
+        signin_query = parse_qs(urlparse(signin_url).query)
+        kc_state = (signin_query.get("kc_state") or [""])[0]
+        nonce = (signin_query.get("nonce") or [""])[0]
+        if not kc_state or not nonce:
+            raise exc.AuthenticationError("ThinQ Web sign-in page request failed")
+
+        hash_pwd = hashlib.sha512()
+        hash_pwd.update(password.encode("utf8"))
+        signin_data = {
+            "userId": await self._web_encrypted_user_id(username),
+            "userPw": hash_pwd.hexdigest(),
+            "svcCode": SVC_CODE,
+            "itgTermsUseFlag": "Y",
+            "itgUserType": "",
+            "doneYn": "",
+            "skipYn": "N",
+            "clientId": "",
+            "kcState": kc_state,
+            "ipadYn": "N",
+            "local_country": self._country,
+            "local_lang": self._language.split("-")[0],
+            "svc_code": SVC_CODE,
+        }
+        async with session.post(
+            url=V2_WEB_SIGNIN_ACT_URL,
+            data=urlencode(signin_data),
+            headers=self._web_form_headers(signin_url),
+            timeout=self._timeout,
+            raise_for_status=False,
+        ) as resp:
+            signin_info = await self._get_json_resp(resp)
+
+        account = signin_info.get("account") or {}
+        if not account.get("userNo"):
+            raise exc.InvalidCredentialError("ThinQ Web user login failed")
+
+        local_lang = self._language.split("-")[0]
+        kc_data = {
+            "kc_state": kc_state,
+            "nonce": nonce,
+            "userNo": account.get("userNo"),
+            "userID": account.get("userID"),
+            "userIDType": account.get("userIDType"),
+            "email": account.get("email") or account.get("userID"),
+            "auto_login_yn": "",
+            "country": self._country,
+            "language": "null",
+            "local_country": self._country,
+            "local_lang": local_lang,
+            "svc_code": SVC_CODE,
+        }
+        async with session.post(
+            url=V2_WEB_KC_CODE_URL,
+            data=urlencode(kc_data),
+            headers=self._web_form_headers(signin_url),
+            timeout=self._timeout,
+            raise_for_status=False,
+        ) as resp:
+            post_signin_url = str(resp.url)
+            post_signin_html = await resp.text()
+
+        token_match = re.search(V2_WEB_POST_SIGNIN_TOKEN_RE, post_signin_html)
+        if not token_match:
+            raise exc.AuthenticationError("ThinQ Web post sign-in token not found")
+
+        extra_headers = self._web_form_headers(post_signin_url)
+        await self._web_post_optional(
+            V2_WEB_USER_INFO_LEGACY_URL,
+            {"local_country": self._country, "local_lang": local_lang, "svc_code": SVC_CODE},
+            extra_headers,
+        )
+        await self._web_post_optional(
+            V2_WEB_SEARCH_USER_NO_URL,
+            {"userNo": account.get("userNo")},
+            extra_headers,
+        )
+        await self._web_post_optional(
+            V2_WEB_SIGNIN_COMPLETE_URL,
+            {
+                "loginSessionID": account.get("loginSessionID"),
+                "uuid": str(uuid.uuid4()),
+                "svcCode": SVC_CODE,
+                "serviceYn": "Y",
+                "deviceId": hashlib.md5(str(uuid.uuid4()).encode()).hexdigest(),
+                "autoYn": "N",
+                "ipadYn": "N",
+                "local_country": self._country,
+                "local_lang": local_lang,
+                "svc_code": SVC_CODE,
+            },
+            extra_headers,
+        )
+
+        await self._web_follow_login_redirects(
+            V2_WEB_DECRYPT_TOKEN_URL,
+            {
+                "token": token_match.group(1),
+                "local_country": self._country,
+                "local_lang": local_lang,
+                "svc_code": SVC_CODE,
+            },
+            extra_headers,
+        )
+        refresh_token = self._web_refresh_token_from_cookie()
+        if not refresh_token:
+            raise exc.AuthenticationError("ThinQ Web refresh token not found")
+
+        access_token, token_validity = await self.refresh_web_auth(refresh_token)
+        user_number = await self.get_web_user_number(access_token)
+        if not user_number:
+            raise exc.AuthenticationError("ThinQ Web user number not found")
+        return {
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+            "token_validity": token_validity,
+            "user_number": user_number,
         }
 
+    async def _web_post_optional(
+        self, url: str, data: dict, headers: dict
+    ) -> None:
+        """POST an auxiliary ThinQ Web login request."""
         async with self._get_session().post(
             url=url,
-            data=pre_login_data,
+            data=urlencode(data),
             headers=headers,
             timeout=self._timeout,
             raise_for_status=False,
         ) as resp:
-            pre_login = await resp.json()
+            await resp.read()
 
-        _LOGGER.debug("auth_user_login - preLogin data: %s", pre_login)
-        headers["X-Signature"] = pre_login["signature"]
-        headers["X-Timestamp"] = pre_login["tStamp"]
+    async def _web_follow_login_redirects(
+        self, url: str, data: dict, headers: dict
+    ) -> None:
+        """Follow the LG account redirects that create the Web refresh cookie."""
+        session = self._get_session()
+        referer = headers.get("Referer", V2_WEB_REFERER)
+        async with session.post(
+            url=url,
+            data=urlencode(data),
+            headers=headers,
+            timeout=self._timeout,
+            raise_for_status=False,
+            allow_redirects=False,
+        ) as resp:
+            next_url = resp.headers.get("Location")
+            await resp.read()
 
-        # try login with username and hashed password
-        extra_data = extra_headers or {}
-        data = {
-            "user_auth2": pre_login["encrypted_pw"],
-            "password_hash_prameter_flag": "Y",
-            "svc_list": "SVC202,SVC710",  # SVC202=LG SmartHome, SVC710=EMP OAuth
-            **extra_data,
-        }
-        emp_login_url = urljoin(
-            emp_base_url, "emp/v2.0/account/session/" + quote(username)
+        for _ in range(8):
+            if not next_url:
+                return
+            next_url = urljoin(referer, next_url)
+            async with session.get(
+                url=next_url,
+                headers={"User-Agent": V2_WEB_USER_AGENT, "Referer": referer},
+                timeout=self._timeout,
+                raise_for_status=False,
+                allow_redirects=False,
+            ) as resp:
+                referer = str(resp.url)
+                next_url = resp.headers.get("Location")
+                await resp.read()
+
+    def _web_refresh_token_from_cookie(self) -> str | None:
+        """Return the ThinQ Web refresh token stored by the login redirects."""
+        cookie_jar = getattr(self._get_session(), "cookie_jar", None)
+        if not cookie_jar:
+            return None
+        for cookie in cookie_jar:
+            if cookie.key == "refresh_token":
+                return cookie.value
+        return None
+
+    async def refresh_web_auth(self, refresh_token: str):
+        """Get a ThinQ Web access token using the Web refresh_token cookie."""
+        headers = self._thinq2_headers(
+            client_id=self._web_client_id(),
+            country=self._country,
+            language=self._language,
+            extra_headers={
+                "x-api-key": V2_NSCREEN_API_KEY,
+                "x-origin": "webapp",
+                "Referer": V2_WEB_REFERER,
+                "Cookie": f"refresh_token={refresh_token}",
+            },
         )
-
         async with self._get_session().post(
-            url=emp_login_url,
-            data=data,
+            url=V2_NSCREEN_AUTH_REFRESH_URL,
             headers=headers,
             timeout=self._timeout,
             raise_for_status=False,
         ) as resp:
-            account_data = await resp.json()
+            out = await self._get_json_resp(resp)
 
-        _LOGGER.debug("auth_user_login - account_data: %s", account_data)
-        if "account" not in account_data or "error" in account_data:
-            msg = ""
-            if "error" in account_data:
-                if err_code := account_data["error"].get("code"):
-                    msg += f"code: {err_code}"
-                if err_msg := account_data["error"].get("message"):
-                    if msg:
-                        msg += " - "
-                    msg += f"message: {err_msg}"
-            if not msg:
-                _LOGGER.error(
-                    "auth_user_login - invalid account_data: %s", account_data
-                )
-                msg = "unknown error"
-            raise exc.AuthenticationError(msg)
-
-        account = account_data["account"]
-
-        # dynamic get secret key for emp signature
-        emp_search_key_url = urljoin(
-            login_base_url, "searchKey?key_name=OAUTH_SECRETKEY&sever_type=OP"
-        )
-
-        async with self._get_session().get(
-            url=emp_search_key_url, timeout=self._timeout, raise_for_status=False
-        ) as resp:
-            secret_data = json.loads(
-                await resp.text()
-            )  # this return data as plain/text
-
-        _LOGGER.debug("auth_user_login - secret_data: %s", secret_data)
-        secret_key = secret_data["returnData"]
-
-        # get token data
-        emp_data = {
-            "account_type": account["userIDType"],
-            "client_id": CLIENT_ID,
-            "country_code": account["country"],
-            "username": account["userID"],
-        }
-
-        parse_url = urlparse(V2_EMP_SESS_URL)
-        timestamp = datetime.now(timezone.utc).strftime(DATE_FORMAT)
-        req_url = f"{parse_url.path}?{urlencode(emp_data)}"
-        signature = self._oauth2_signature(f"{req_url}\n{timestamp}", secret_key)
-
-        emp_headers = {
-            "lgemp-x-app-key": OAUTH_CLIENT_KEY,
-            "lgemp-x-date": timestamp,
-            "lgemp-x-session-key": account["loginSessionID"],
-            "lgemp-x-signature": signature,
-            "Accept": "application/json",
-            "X-Device-Type": "M01",
-            "X-Device-Platform": "ADR",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Access-Control-Allow-Origin": "*",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 Edg/93.0.961.44",
-        }
-
-        async with self._get_session().post(
-            url=V2_EMP_SESS_URL,
-            headers=emp_headers,
-            data=emp_data,
-            timeout=self._timeout,
-            raise_for_status=False,
-        ) as resp:
-            token_data = await resp.json()
-
-        if LOG_AUTH_INFO:
-            _LOGGER.debug("auth_user_login - token_data: %s", token_data)
-
-        if token_data.get("status", -1) != 1:
+        if out.get("resultCode") != "0000":
             raise exc.TokenError()
 
-        return token_data
+        result = out.get("result") or {}
+        access_token = result.get("accessToken")
+        if not access_token:
+            raise exc.TokenError()
+        return access_token, result.get("expiresIn", DEFAULT_TOKEN_VALIDITY)
 
-    async def get_user_number(self, access_token, *, oauth_url: str | None = None):
-        """Get the user number used by API requests based on access token."""
-
-        if not oauth_url:
-            oauth_url = await self.get_oauth_url()
-
-        url = urljoin(oauth_url, V2_USER_INFO)
-        timestamp = datetime.now(timezone.utc).strftime(DATE_FORMAT)
-        sig = self._oauth2_signature(f"{V2_USER_INFO}\n{timestamp}", OAUTH_SECRET_KEY)
-
-        headers = {
-            "Accept": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "X-Lge-Svccode": SVC_CODE,
-            "X-Application-Key": APPLICATION_KEY,
-            "lgemp-x-app-key": CLIENT_ID,
-            "X-Device-Type": "M01",
-            "X-Device-Platform": "ADR",
-            "x-lge-oauth-date": timestamp,
-            "x-lge-oauth-signature": sig,
-        }
-
+    async def get_web_user_number(self, access_token: str) -> str | None:
+        """Get the ThinQ user number from a ThinQ Web access token."""
         async with self._get_session().get(
-            url=url, headers=headers, timeout=self._timeout, raise_for_status=False
-        ) as resp:
-            res_data = await resp.json()
-
-        if res_data.get("status", -1) != 1 or "account" not in res_data:
-            _LOGGER.error("get_user_number: invalid response: %s", res_data)
-            raise exc.AuthenticationError("Failed to retrieve User Number")
-        if LOG_AUTH_INFO:
-            _LOGGER.debug("Get user number: %s", res_data)
-
-        return res_data["account"]["userNo"]
-
-    async def _auth_request(
-        self, data, *, oauth_url: str | None = None, log_auth_info=False
-    ):
-        """
-        Use an auth code to log into the v2 API and obtain an access token
-        and refresh token.
-        """
-        if not oauth_url:
-            oauth_url = await self.get_oauth_url()
-
-        url = urljoin(oauth_url, V2_AUTH_PATH)
-        timestamp = datetime.now(timezone.utc).strftime(DATE_FORMAT)
-        req_url = f"{V2_AUTH_PATH}?{urlencode(data)}"
-        sig = self._oauth2_signature(f"{req_url}\n{timestamp}", OAUTH_SECRET_KEY)
-
-        headers = {
-            "x-lge-appkey": CLIENT_ID,
-            "x-lge-oauth-signature": sig,
-            "x-lge-oauth-date": timestamp,
-            "Accept": "application/json",
-        }
-
-        async with self._get_session().post(
-            url=url,
-            headers=headers,
-            data=data,
+            url=V2_WEB_USER_INFO_URL,
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {access_token}",
+                "Referer": V2_WEB_REFERER,
+                "User-Agent": V2_WEB_USER_AGENT,
+            },
             timeout=self._timeout,
             raise_for_status=False,
         ) as resp:
-            if resp.status != 200:
-                raise exc.TokenError()
-            res_data = await resp.json()
-
-        if log_auth_info:
-            _LOGGER.debug("Auth request result: %s", res_data)
-        else:
-            _LOGGER.debug("Authorization request completed successfully")
-
-        return res_data
-
-    async def auth_code_login(self, auth_code, *, oauth_url: str | None = None):
-        """
-        Get a new access_token using an authorization_code.
-        May raise a `tokenError`.
-        """
-        out = await self._auth_request(
-            {
-                "code": auth_code,
-                "grant_type": "authorization_code",
-                "redirect_uri": EMP_REDIRECT_URL,
-            },
-            log_auth_info=LOG_AUTH_INFO,
-            oauth_url=oauth_url,
-        )
-
-        return out["access_token"], out.get("expires_in"), out["refresh_token"]
-
-    async def refresh_auth(self, refresh_token, *, oauth_url: str | None = None):
-        """
-        Get a new access_token using a refresh_token.
-        May raise a `TokenError`.
-        """
-        out = await self._auth_request(
-            {"grant_type": "refresh_token", "refresh_token": refresh_token},
-            log_auth_info=LOG_AUTH_INFO,
-            oauth_url=oauth_url,
-        )
-
-        return out["access_token"], out["expires_in"]
+            out = await self._get_json_resp(resp)
+        return out.get("user_no")
 
 
 class Gateway:
@@ -800,9 +759,6 @@ class Gateway:
 
     def __init__(self, gw_info: dict, core: CoreAsync) -> None:
         """Initialize the gateway object."""
-        self.auth_base = add_end_slash(gw_info["empUri"])
-        self.emp_base_uri = add_end_slash(gw_info["empTermsUri"])
-        self.login_base_uri = add_end_slash(gw_info["empSpxUri"])
         self.thinq1_uri = add_end_slash(gw_info["thinq1Uri"])
         self.thinq2_uri = add_end_slash(gw_info["thinq2Uri"])
         self._core = core
@@ -832,70 +788,9 @@ class Gateway:
         gw_info = await core.gateway_info()
         return cls(gw_info, core)
 
-    def oauth_login_url(
-        self,
-        *,
-        use_oauth2=True,
-        redirect_uri: str | None = None,
-        state: str | None = None,
-    ) -> str:
-        """
-        Construct the URL for users to log in (in a browser) to start an
-        authenticated session.
-        """
-
-        url_base_parsed = urlparse(self.login_base_uri)
-        url_redirect = urlunparse(
-            ParseResult(
-                scheme=url_base_parsed.scheme,
-                netloc=url_base_parsed.netloc,
-                path=urljoin(url_base_parsed.path, OAUTH_REDIRECT_PATH),
-                params=None,
-                query=None,
-                fragment=None,
-            )
-        )
-        url_netloc = OAUTH_LOGIN_HOST
-        if url_base_parsed.port:
-            url_netloc += f":{url_base_parsed.port}"
-
-        redir_param = "callback_url" if use_oauth2 else "redirect_uri"
-        state_param = "oauth2State" if use_oauth2 else "state"
-        query = {
-            "country": self.country,
-            "language": self.language,
-            "client_id": CLIENT_ID,
-            "svc_list": SVC_CODE,
-            "svc_integrated": "Y",
-            "show_thirdparty_login": ",".join(["LGE", "MYLG", *THIRD_PART_LOGIN]),
-            "division": "ha",  # "ha:T20",
-            redir_param: url_redirect,
-            state_param: state or uuid.uuid1().hex,
-            "show_select_country": "N",
-        }
-        if "redirect_uri" in query:
-            query["redirect_uri"] = redirect_uri or OAUTH_REDIRECT_URI
-
-        url_query = urlencode(query)
-        url_login = urlunparse(
-            ParseResult(
-                scheme=url_base_parsed.scheme,
-                netloc=url_netloc,
-                path=urljoin(url_base_parsed.path, OAUTH_LOGIN_PATH),
-                params=None,
-                query=url_query,
-                fragment=None,
-            )
-        )
-
-        return url_login
-
     def dump(self) -> dict:
         """Dump the gateway objet."""
         return {
-            "empUri": self.auth_base,
-            "empTermsUri": self.emp_base_uri,
-            "empSpxUri": self.login_base_uri,
             "thinq1Uri": self.thinq1_uri,
             "thinq2Uri": self.thinq2_uri,
             "country": self.country,
@@ -923,9 +818,7 @@ class Auth:
         )
         self.user_number = user_number
         self._token_created_on = (
-            datetime.now(timezone.utc)
-            if access_token
-            else datetime.min.replace(tzinfo=timezone.utc)
+            datetime.now(timezone.utc) if access_token else datetime.min
         )
 
     @property
@@ -934,122 +827,21 @@ class Auth:
         return self._gateway
 
     @staticmethod
-    async def _oauth_info_from_result(result: dict, core: CoreAsync) -> dict:
-        """Return authentication info using an OAuth callback URL."""
-        if auth_code := result.pop("auth_code", None):
-            access_token, token_validity, refresh_token = await core.auth_code_login(
-                auth_code, oauth_url=result.get("oauth_url")
-            )
-            return {
-                **result,
-                "access_token": access_token,
-                "token_validity": token_validity,
-                "refresh_token": refresh_token,
-            }
-
-        return result
-
-    @staticmethod
-    async def oauth_info_from_url(
-        url: str, core: CoreAsync, *, gateway: Gateway | None = None
+    async def web_auth_info_from_user_login(
+        username: str, password: str, core: CoreAsync
     ) -> dict:
-        """Return authentication info using an OAuth callback URL."""
-        params = parse_qs(urlparse(url).query)
-        parse_result = {k: v[0] for k, v in params.items()}
-        url_info = _oauth_info_from_result(parse_result)
-
-        # Manage third part login
-        if not url_info:
-            username = parse_result.get("user_id")
-            thirdparty_token = parse_result.get("user_thirdparty_token")
-            id_type = parse_result.get("user_id_type", "")
-
-            if not (username and thirdparty_token) or id_type not in THIRD_PART_LOGIN:
-                raise exc.AuthenticationError("Invalid third part login info")
-
-            try:
-                if not gateway:
-                    gateway = await Gateway.discover(core)
-                token_info = await core.auth_user_login(
-                    gateway.login_base_uri,
-                    gateway.emp_base_uri,
-                    username,
-                    thirdparty_token,
-                    extra_headers={
-                        "third_party": THIRD_PART_LOGIN[id_type],
-                    },
-                )
-            except exc.AuthenticationError:
-                raise
-            except Exception as ex:
-                raise exc.AuthenticationError("Third part login failed") from ex
-            url_info = _oauth_info_from_result(token_info)
-
-        result = await Auth._oauth_info_from_result(url_info, core)
-        if not result:
-            raise exc.AuthenticationError("Url login failed")
-
-        return result
-
-    @staticmethod
-    async def oauth_info_from_user_login(
-        username: str, password: str, gateway: Gateway
-    ) -> dict:
-        """Return authentication info using username and password."""
-        hash_pwd = hashlib.sha512()
-        hash_pwd.update(password.encode("utf8"))
+        """Return ThinQ Web authentication info using username and password."""
         try:
-            token_info = await gateway.core.auth_user_login(
-                gateway.login_base_uri,
-                gateway.emp_base_uri,
-                username,
-                hash_pwd.hexdigest(),
-            )
+            result = await core.web_user_login(username, password)
         except exc.AuthenticationError:
             raise
         except Exception as ex:
-            raise exc.AuthenticationError("User login failed") from ex
+            raise exc.AuthenticationError("ThinQ Web user login failed") from ex
 
-        login_info = _oauth_info_from_result(token_info)
-        result = await Auth._oauth_info_from_result(login_info, gateway.core)
         if not result:
-            raise exc.AuthenticationError("User login failed")
+            raise exc.AuthenticationError("ThinQ Web user login failed")
 
         return result
-
-    @classmethod
-    async def from_url(cls, gateway: Gateway, url: str) -> Auth | None:
-        """Create an authentication using an OAuth callback URL."""
-        oauth_info = await cls.oauth_info_from_url(url, gateway.core, gateway=gateway)
-        if not oauth_info:
-            return None
-
-        auth = cls(
-            gateway,
-            oauth_info["refresh_token"],
-            oauth_info["access_token"],
-            oauth_info["token_validity"],
-            oauth_info["user_number"],
-        )
-        return await auth.refresh()
-
-    @classmethod
-    async def from_user_login(
-        cls, gateway: Gateway, username: str, password: str
-    ) -> Auth:
-        """Perform authentication, returning a new Auth object."""
-        oauth_info = await cls.oauth_info_from_user_login(username, password, gateway)
-        if not oauth_info:
-            return None
-
-        auth = cls(
-            gateway,
-            oauth_info["refresh_token"],
-            oauth_info["access_token"],
-            oauth_info["token_validity"],
-            oauth_info["user_number"],
-        )
-        return await auth.refresh()
 
     def start_session(self):
         """
@@ -1072,14 +864,18 @@ class Auth:
         if get_new_token:
             _LOGGER.debug("Request new access token")
             self.access_token = None
-            access_token, token_validity = await self._gateway.core.refresh_auth(
+            access_token, token_validity = await self._gateway.core.refresh_web_auth(
                 self.refresh_token
             )
         else:
             token_validity = str(self.token_validity)
 
         if not self.user_number:
-            self.user_number = await self._gateway.core.get_user_number(access_token)
+            self.user_number = await self._gateway.core.get_web_user_number(
+                access_token
+            )
+            if not self.user_number:
+                raise exc.TokenError()
 
         if not get_new_token:
             return self
@@ -1559,7 +1355,7 @@ class ClientAsync:
         return self._emulation
 
     @property
-    def oauth_info(self) -> dict:
+    def auth_info(self) -> dict:
         """Return current auth info."""
         return {
             "refresh_token": self.auth.refresh_token,
@@ -1608,58 +1404,12 @@ class ClientAsync:
             await self.refresh()
 
     @classmethod
-    async def from_user_login(
-        cls,
-        username: str,
-        password: str,
-        *,
-        country: str = DEFAULT_COUNTRY,
-        language: str = DEFAULT_LANGUAGE,
-        oauth_url: str | None = None,
-        aiohttp_session: aiohttp.ClientSession | None = None,
-        client_id: str | None = None,
-        enable_emulation: bool = False,
-    ) -> ClientAsync:
-        """
-        Construct a client using username and password.
-
-        This allows simpler state storage (e.g., for human-written
-        configuration) but it is a little less efficient because we need
-        to reload the gateway servers and restart the session.
-        """
-
-        core = CoreAsync(
-            country,
-            language,
-            oauth_url=oauth_url,
-            session=aiohttp_session,
-            client_id=client_id,
-        )
-        try:
-            gateway = await Gateway.discover(core)
-            auth = await Auth.from_user_login(gateway, username, password)
-            client = cls(
-                auth=auth,
-                country=country,
-                language=language,
-                enable_emulation=enable_emulation,
-            )
-            client._session = auth.start_session()
-            await client._load_devices()
-        except Exception:  # pylint: disable=broad-except
-            await core.close()
-            raise
-
-        return client
-
-    @classmethod
     async def from_token(
         cls,
         refresh_token: str,
         *,
         country: str = DEFAULT_COUNTRY,
         language: str = DEFAULT_LANGUAGE,
-        oauth_url: str | None = None,
         aiohttp_session: aiohttp.ClientSession | None = None,
         client_id: str | None = None,
         update_clientid_callback: Callable[[str], None] | None = None,
@@ -1676,7 +1426,6 @@ class ClientAsync:
         core = CoreAsync(
             country,
             language,
-            oauth_url=oauth_url,
             session=aiohttp_session,
             client_id=client_id,
             update_clientid_callback=update_clientid_callback,
@@ -1698,40 +1447,7 @@ class ClientAsync:
         return client
 
     @staticmethod
-    async def get_login_url(
-        country: str = DEFAULT_COUNTRY,
-        language: str = DEFAULT_LANGUAGE,
-        *,
-        aiohttp_session: aiohttp.ClientSession | None = None,
-    ) -> str:
-        """Return an url to use to login in a browser."""
-        core = CoreAsync(country, language, session=aiohttp_session)
-        try:
-            gateway = await Gateway.discover(core)
-        finally:
-            await core.close()
-
-        return gateway.oauth_login_url()
-
-    @staticmethod
-    async def oauth_info_from_url(
-        url: str,
-        country: str = DEFAULT_COUNTRY,
-        language: str = DEFAULT_LANGUAGE,
-        *,
-        aiohttp_session: aiohttp.ClientSession | None = None,
-    ) -> dict:
-        """Return authentication info from an OAuth callback URL."""
-        core = CoreAsync(country, language, session=aiohttp_session)
-        try:
-            result = await Auth.oauth_info_from_url(url, core)
-        finally:
-            await core.close()
-
-        return result
-
-    @staticmethod
-    async def oauth_info_from_user_login(
+    async def auth_info_from_user_login(
         username: str,
         password: str,
         country: str = DEFAULT_COUNTRY,
@@ -1739,11 +1455,14 @@ class ClientAsync:
         *,
         aiohttp_session: aiohttp.ClientSession | None = None,
     ) -> dict:
-        """Return authentication info from an OAuth callback URL."""
-        core = CoreAsync(country, language, session=aiohttp_session)
+        """Return ThinQ Web authentication info from username and password."""
+        core = CoreAsync(
+            country,
+            language,
+            session=aiohttp_session,
+        )
         try:
-            gateway = await Gateway.discover(core)
-            result = await Auth.oauth_info_from_user_login(username, password, gateway)
+            result = await Auth.web_auth_info_from_user_login(username, password, core)
         finally:
             await core.close()
 
@@ -1885,7 +1604,7 @@ class ClientAsync:
         if "session" in state:
             client._session = Session(client.auth, state["session"])
 
-        if "model_info" in state:
+        if "model_url_info" in state:
             client._model_url_info = state["model_url_info"]
 
         if "country" in state:
