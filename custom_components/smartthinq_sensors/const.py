@@ -7,7 +7,7 @@ ISSUE_URL = f"{PROJECT_URL}issues"
 DOMAIN = "smartthinq_sensors_custom"
 
 MIN_HA_MAJ_VER = 2025
-MIN_HA_MIN_VER = 1
+MIN_HA_MIN_VER = 7
 __min_ha_version__ = f"{MIN_HA_MAJ_VER}.{MIN_HA_MIN_VER}.0"
 
 # general sensor attributes
