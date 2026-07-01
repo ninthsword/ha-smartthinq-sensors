@@ -21,6 +21,7 @@ from homeassistant.const import (
     PERCENTAGE,
     STATE_UNAVAILABLE,
     EntityCategory,
+    UnitOfEnergy,
     UnitOfPower,
     UnitOfTime,
 )
@@ -218,6 +219,20 @@ REFRIGERATOR_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (
         icon="mdi:waves",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=PERCENTAGE,
+    ),
+    ThinQSensorEntityDescription(
+        key=RefrigeratorFeatures.ENERGY_TODAY,
+        name="Energy today",
+        icon="mdi:lightning-bolt",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+    ),
+    ThinQSensorEntityDescription(
+        key=RefrigeratorFeatures.ENERGY_MONTH,
+        name="Energy month",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     ),
 )
 AC_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (
@@ -517,6 +532,27 @@ WATER_HEATER_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
+    ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.ENERGY_TODAY,
+        name="Energy today",
+        icon="mdi:lightning-bolt",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.ENERGY_YESTERDAY,
+        name="Energy yesterday",
+        icon="mdi:lightning-bolt",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    ),
+    ThinQSensorEntityDescription(
+        key=AirConditionerFeatures.ENERGY_MONTH,
+        name="Energy month",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     ),
 )
 HOOD_SENSORS: tuple[ThinQSensorEntityDescription, ...] = (

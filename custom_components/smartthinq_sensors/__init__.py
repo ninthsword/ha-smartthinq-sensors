@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 
 from homeassistant.components import persistent_notification
@@ -32,6 +33,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     CLIENT,
+    CONF_CLIENT_ID_CREATED_ON,
     CONF_LANGUAGE,
     CONF_USE_API_V2,
     DOMAIN,
@@ -85,6 +87,7 @@ DISCOVERED_DEVICES = "discovered_devices"
 UNSUPPORTED_DEVICES = "unsupported_devices"
 
 SCAN_INTERVAL = timedelta(seconds=30)
+CONTROL_REFRESH_DELAY = 2
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -116,7 +119,8 @@ class LGEAuthentication:
         self,
         token: str,
         client_id: str | None = None,
-        update_clientid_callback: Callable[[str], None] | None = None,
+        client_id_created_on: datetime | None = None,
+        update_clientid_callback: Callable[[str, datetime], None] | None = None,
     ) -> ClientAsync:
         """Create a new client using refresh token."""
         return await ClientAsync.from_token(
@@ -124,6 +128,7 @@ class LGEAuthentication:
             country=self._region,
             language=self._language,
             client_id=client_id,
+            client_id_created_on=client_id_created_on,
             update_clientid_callback=update_clientid_callback,
         )
 
@@ -148,6 +153,18 @@ def _notify_message(
         hass, message, title, f"{DOMAIN}.{notification_id}"
     )
 
+def _parse_datetime(value: str | None) -> datetime | None:
+    """Parse a stored ISO formatted datetime."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        _LOGGER.debug("Ignoring invalid stored client ID creation time: %s", value)
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SmartThinQ integration from a config entry."""
@@ -166,6 +183,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     language = entry.data[CONF_LANGUAGE]
     refresh_token = entry.data[CONF_TOKEN]
     client_id: str | None = entry.data.get(CONF_CLIENT_ID)
+    client_id_created_on = _parse_datetime(entry.data.get(CONF_CLIENT_ID_CREATED_ON))
     use_api_v2 = entry.data.get(CONF_USE_API_V2, False)
     entry_data = {
         key: value
@@ -197,10 +215,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             language,
         )
 
-    def _update_clientid_callback(client_id: str) -> None:
+    def _update_clientid_callback(client_id: str, created_on: datetime) -> None:
         """Update config entry with the new client id."""
         hass.config_entries.async_update_entry(
-            entry, data={**entry_data, CONF_CLIENT_ID: client_id}
+            entry,
+            data={
+                **entry_data,
+                CONF_CLIENT_ID: client_id,
+                CONF_CLIENT_ID_CREATED_ON: created_on.isoformat(),
+            },
         )
 
     # if network is not connected we can have some error
@@ -210,6 +233,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client = await lge_auth.create_client_from_token(
             refresh_token,
             client_id,
+            client_id_created_on,
             _update_clientid_callback,
         )
     except (AuthenticationError, InvalidCredentialError, TokenError) as exc:
@@ -330,6 +354,7 @@ class LGEDevice:
 
         self._state = None
         self._coordinator: DataUpdateCoordinator | None = None
+        self._control_refresh_task: asyncio.Task | None = None
         self._disc_count = 0
         self._available = True
 
@@ -421,6 +446,27 @@ class LGEDevice:
         """Manually update state and notify coordinator entities."""
         if self._coordinator:
             self._coordinator.async_set_updated_data(self._state)
+            self._async_schedule_control_refresh()
+
+    @callback
+    def _async_schedule_control_refresh(self):
+        """Schedule a short delayed refresh after a local control command."""
+        if not self._coordinator:
+            return
+        if self._control_refresh_task and not self._control_refresh_task.done():
+            self._control_refresh_task.cancel()
+        self._control_refresh_task = self._hass.async_create_task(
+            self._async_control_refresh()
+        )
+
+    async def _async_control_refresh(self):
+        """Refresh device state after LG has applied the control command."""
+        try:
+            await asyncio.sleep(CONTROL_REFRESH_DELAY)
+            if self._coordinator:
+                await self._coordinator.async_request_refresh()
+        except asyncio.CancelledError:
+            pass
 
     async def _create_coordinator(self) -> None:
         """Get the coordinator for a specific device."""
