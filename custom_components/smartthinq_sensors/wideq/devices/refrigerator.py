@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import base64
+from calendar import monthrange
+from datetime import datetime
 import json
 import logging
 
 from ..const import RefrigeratorFeatures, StateOptions, TemperatureUnit
 from ..core_async import ClientAsync
+from ..core_exceptions import InvalidRequestError
 from ..device import LABEL_BIT_OFF, LABEL_BIT_ON, Device, DeviceStatus
 from ..device_info import DeviceInfo
 from ..model_info import TYPE_ENUM
@@ -40,6 +43,7 @@ DEFAULT_FREEZER_RANGE_F = [-8, 6]
 
 REFR_ROOT_DATA = "refState"
 CTRL_BASIC = ["Control", "basicCtrl"]
+ENERGY_USAGE_POLL_INTERVAL = 300  # 5 minutes
 
 STATE_ECO_FRIENDLY = ["EcoFriendly", "ecoFriendly"]
 STATE_ICE_PLUS = ["IcePlus", ""]
@@ -72,6 +76,12 @@ class RefrigeratorDevice(Device):
         self._fridge_ranges = None
         self._freezer_temps = None
         self._freezer_ranges = None
+        self._energy_usage = {
+            RefrigeratorFeatures.ENERGY_TODAY: None,
+            RefrigeratorFeatures.ENERGY_MONTH: None,
+        }
+        self._energy_usage_supported = True
+        self._last_energy_usage_poll: datetime | None = None
 
     def _get_feature_info(self, item_key):
         config = self.model_info.config_value("visibleItems")
@@ -360,6 +370,105 @@ class RefrigeratorDevice(Device):
         self._status = RefrigeratorStatus(self)
         return self._status
 
+    @staticmethod
+    def _energy_history_items(history) -> list[dict] | None:
+        """Return ThinQ Web energy-history items."""
+        if isinstance(history, list):
+            return history
+        if isinstance(history, dict):
+            items = history.get("item")
+            if isinstance(items, list):
+                return items
+        return None
+
+    @classmethod
+    def _energy_history_kwh(cls, history) -> float | None:
+        """Sum ThinQ Web energy-history power values in kWh."""
+        total_wh = cls._energy_history_wh(history)
+        if total_wh is None:
+            return None
+        return round(total_wh / 1000, 2)
+
+    @classmethod
+    def _energy_history_wh(cls, history) -> int | None:
+        """Sum ThinQ Web energy-history power values in Wh."""
+        items = cls._energy_history_items(history)
+        if items is None:
+            return None
+
+        total_wh = 0
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            total_wh += cls._energy_wh(
+                item.get("power", item.get("energyData", item.get("useAmount")))
+            )
+        return total_wh
+
+    @staticmethod
+    def _energy_wh(value) -> int:
+        """Convert ThinQ energy values to Wh."""
+        try:
+            if value in (None, "NO_DATA"):
+                return 0
+            return int(float(value))
+        except (TypeError, ValueError):
+            return 0
+
+    async def get_energy_usage(self):
+        """Get daily and monthly energy usage in kWh from ThinQ Web energy history."""
+        if not self._energy_usage_supported:
+            return None
+
+        now = datetime.now()
+        today = now.strftime("%Y-%m-%d")
+        month_start = datetime(now.year, now.month, 1).strftime("%Y-%m-%d")
+        month_end = datetime(
+            now.year, now.month, monthrange(now.year, now.month)[1]
+        ).strftime("%Y-%m-%d")
+
+        async def _get_history(period: str, start_date: str, end_date: str):
+            path = (
+                f"service/fridge/{self.device_info.device_id}/energy-history"
+                f"?period={period}&startDate={start_date}&endDate={end_date}"
+            )
+            return await self._client.session.get2(path)
+
+        try:
+            today_history = await _get_history("hour", today, today)
+            month_history = await _get_history("month", month_start, month_end)
+        except (ValueError, InvalidRequestError) as exc:
+            _LOGGER.debug("Error calling refrigerator get_energy_usage method: %s", exc)
+            return None
+
+        today_usage = self._energy_history_wh(today_history)
+        month_usage = self._energy_history_kwh(month_history)
+        if today_usage is None or month_usage is None:
+            _LOGGER.debug(
+                "Unexpected refrigerator get_energy_usage response: today=%s, month=%s",
+                today_history,
+                month_history,
+            )
+            return None
+
+        return {
+            RefrigeratorFeatures.ENERGY_TODAY: today_usage,
+            RefrigeratorFeatures.ENERGY_MONTH: month_usage,
+        }
+
+    async def _update_energy_usage(self):
+        """Update energy usage values on a slower polling interval."""
+        if not self._energy_usage_supported:
+            return
+        now = datetime.now()
+        if self._last_energy_usage_poll is not None:
+            diff = (now - self._last_energy_usage_poll).total_seconds()
+            if diff < ENERGY_USAGE_POLL_INTERVAL:
+                return
+        self._last_energy_usage_poll = now
+        if energy_usage := await self.get_energy_usage():
+            self._energy_usage.update(energy_usage)
+    
     async def poll(self) -> RefrigeratorStatus | None:
         """Poll the device's current state."""
 
@@ -367,6 +476,7 @@ class RefrigeratorDevice(Device):
         if not res:
             return None
 
+        await self._update_energy_usage()
         self._status = RefrigeratorStatus(self, res)
         return self._status
 
@@ -643,6 +753,28 @@ class RefrigeratorStatus(DeviceStatus):
             False,
             FEATURE_KEY_IGNORE,
         )
+
+    @property
+    def energy_today(self):
+        """Return today's energy usage."""
+        return self._update_feature(
+            RefrigeratorFeatures.ENERGY_TODAY,
+            self._device._energy_usage.get(RefrigeratorFeatures.ENERGY_TODAY),
+            False,
+            FEATURE_KEY_IGNORE,
+            allow_none=True,
+        )
+
+    @property
+    def energy_month(self):
+        """Return this month's energy usage."""
+        return self._update_feature(
+            RefrigeratorFeatures.ENERGY_MONTH,
+            self._device._energy_usage.get(RefrigeratorFeatures.ENERGY_MONTH),
+            False,
+            FEATURE_KEY_IGNORE,
+            allow_none=True,
+        )
     
     @property
     def locked_state(self):
@@ -668,4 +800,6 @@ class RefrigeratorStatus(DeviceStatus):
             self.fresh_air_filter_remain_perc,
             self.water_filter_used_month,
             self.water_filter_remain_perc,
+            self.energy_today,
+            self.energy_month,
         ]
